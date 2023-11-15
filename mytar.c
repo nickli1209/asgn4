@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(){
-    printf("Are you excited for a super fun Project Lukas!!!\n");
+int main(int argc, char *argv[]) {
+	if (argc < 3) {
+		fprintf(stderr, "usage: mytar [ctxvS]f tarfile [ path [ ... ] ]\n");
+		exit(EXIT_FAILURE);
+	}
+
     return 0;
 }
