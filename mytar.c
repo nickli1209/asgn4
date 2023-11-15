@@ -1,5 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "tar_stuff.h"
 
 /* these defines good practice? */
 #define ON 1
