@@ -6,6 +6,4 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "usage: mytar [ctxvS]f tarfile [ path [ ... ] ]\n");
 		exit(EXIT_FAILURE);
 	}
-
-    return 0;
 }
