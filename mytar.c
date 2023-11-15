@@ -6,11 +6,15 @@
 
 /* should options be global?
  * other options? (list?) */
-int c_option = OFF, t_option = OFF, x_option = OFF,
-	v_option = OFF, f_option = OFF, S_option = OFF;
+//int c_option = OFF, t_option = OFF, x_option = OFF,
+	//v_option = OFF, f_option = OFF, S_option = OFF;
+//nick update:
+typedef struct{
+    int c,t,x,v,f,S;
+}Options;
 
 /* okay to leave functions like these in main? */
-void check_options(char *options);
+Options check_options(char *options);
 
 int main(int argc, char *argv[]) {
 	/* check for at least 3 args */
@@ -19,36 +23,37 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 	
-	check_options(argv[1]);
+	Options opts = check_options(argv[1]);
+	return 0;
 }
 
 /* takes string of options, iterates through options and turns
  * on corresponding flags. returns void */
-void check_options(char *options) {
+Options check_options(char *options) {
+	Options opts ={0};
 	int i;
-	
 	/* pass every character in options string through switch case */
-	for(i = 0; options[i] != 0; i++) {
+	for(i = 0; options[i] != '\0'; i++) {
 		/* if character matches an option, turn on corresponding flag,
 		 * else throw error */
 		switch(options[i]) {
 			case 'c':
-				c_option = ON;
+				opts.c = ON;
 				break;
 			case 't':
-				t_option = ON;
+				opts.t = ON;
 				break;
 			case 'x':
-				x_option = ON;
+				opts.x = ON;
 				break;
 			case 'v':
-				v_option = ON;
+				opts.v = ON;
 				break;
 			case 'f':
-				f_option = ON;
+				opts.f = ON;
 				break;
 			case 'S':
-				S_option = ON;
+				opts.S = ON;
 				break;
 			default:
 				fprintf(stderr, "not a valid option: %c\n", options[i]);
@@ -57,15 +62,16 @@ void check_options(char *options) {
 	}
 	
 	/* f option need to be at end of options? included in flag check? */	
-	if (!f_option) {
+	if (!opts.f) {
 		fprintf(stderr, "options must contain 'f'\n");
 		exit(EXIT_FAILURE);
 	}
 	
 	/* if c, t, or x flags are not present, throw error*/
-	if(!(c_option || t_option || x_option)) {
+	if(!(opts.c || opts.t || opts.x)) {
 		fprintf(stderr, "options must contain one of: 'c', 't', 'x'\n");
 		exit(EXIT_FAILURE);
 	}
+    return opts;
 }
 
