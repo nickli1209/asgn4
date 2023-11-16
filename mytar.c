@@ -10,9 +10,11 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "usage: mytar [ctxvS]f tarfile [ path [ ... ] ]\n");
 		exit(EXIT_FAILURE);
 	}
-
+	
+	/* store options in Options struct  */
 	opts = check_options(argv[1]);
-
+	
+	/* create */
 	if (opts->c) {
 		if (argc < 4) {
 			fprintf(stderr, "usage: mytar [txvS]cf tarfile [ path [ ... ] ]\n");
@@ -22,15 +24,13 @@ int main(int argc, char *argv[]) {
 			perror("malloc on path");
 			exit(EXIT_FAILURE);	
 		}
-		
+		/* traverse every file in path argument */
 		for (i = 3; i < argc; i++) {
 			pathlen = strlen(argv[i]);
 			memmove(path, argv[i], pathlen);
 			path[pathlen] = '\0';
 			traverse_files(path, pathlen, opts);
 		}	
-
-
 	}	
 
 	return 0;
