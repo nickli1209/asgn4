@@ -40,9 +40,9 @@ Options *check_options(char *options) {
 		exit(EXIT_FAILURE);
 	}
 	
-	/* c, t, or x flags are not present, throw error */
-	if(!(opts->c || opts->t || opts->x) && !(opts->c && opts->t) &&
-		   	!(opts->c && opts->x) && !(opts->t && opts->x)) {
+	/* if more than one of c, t, or x flags, or if
+	 * these flags not present, throw error */
+	if((opts->c + opts->t + opts->x != 1)) {
 		fprintf(stderr, "options must contain one and only one of: 'c', 't', 'x'\n");
 		exit(EXIT_FAILURE);
 	}
