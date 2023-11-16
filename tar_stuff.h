@@ -8,11 +8,11 @@
 #define ON 1
 #define OFF 0
 
-#define name_offset 0
-#define mode_offset 100
-#define gname_offset 297
-#define size_offset 124
-#define mtime_offset 136
+#define NAME_OFFSET 0
+#define MODE_OFFSET 100
+#define GNAME_OFFSET 297
+#define SIZE_OFFSET 124
+#define MTIME_OFFSET 136
 
 
 #define PATH_MAX 255
@@ -23,22 +23,22 @@ typedef struct{
 }Options;
 
 typedef struct {
-char name[100];
-char mode[8];
-char uid[8];
-char gid[8];
-char size[12];
-char mtime[12];
-char chksum[8];
-char typeflag;
-char linkname[100];
-char magic[6];  
-char version[2];
-char uname[32];
-char gname[32];
-char devmajor[8];
-char devminor[8];
-char prefix[155];
+	char name[100];
+	char mode[8];
+	char uid[8];
+	char gid[8];
+	char size[12];
+	char mtime[12];
+	char chksum[8];
+	char typeflag;
+	char linkname[100];
+	char magic[6];  
+	char version[2];
+	char uname[32];
+	char gname[32];
+	char devmajor[8];
+	char devminor[8];
+	char prefix[155];
 }Header;
 
 
