@@ -5,7 +5,8 @@ void traverse_files(char *path, char *name, int path_index, Options *options) {
 	struct dirent *cur_ent;
 	struct stat sb;
 	char cwd[PATH_MAX*2];
-	
+	char cur_path[PATH_MAX];	
+
 	if (chdir(name) == -1) {
 		perror("chdir");
 		exit(EXIT_FAILURE);
@@ -23,11 +24,19 @@ void traverse_files(char *path, char *name, int path_index, Options *options) {
 				perror("lstat");
 				exit(EXIT_FAILURE);
 			}
-			printf("path: %s\n", path);
+
+			strcpy(cur_path, path);
+			strcat(cur_path, "/");
+			strcat(cur_path, cur_ent->d_name);
+
+			printf("path: %s\n", cur_path);
 			printf("file: %s\n", cur_ent->d_name);
 			printf("cwd: %s\n", cwd);
+
+			/*
 			path[path_index++] = '/';
 			strcpy(&path[path_index], cur_ent->d_name);
+			*/
 			path_index += strlen(cur_ent->d_name);
 
 			if (S_ISDIR(sb.st_mode) && !S_ISLNK(sb.st_mode)) {
@@ -38,7 +47,7 @@ void traverse_files(char *path, char *name, int path_index, Options *options) {
 				
 				/*strcpy(name, cur_ent->d_name);*/	
 				
-				traverse_files(path, cur_ent->d_name, path_index, options);
+				traverse_files(cur_path, cur_ent->d_name, path_index, options);
 				
 				if (chdir(cwd) == -1) {
 					perror("chdir to cwd");
