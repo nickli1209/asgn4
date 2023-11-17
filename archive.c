@@ -58,3 +58,25 @@ void traverse_files(char *path, char *name, int path_index, Options *options) {
 	}
 	closedir(cur_dir);
 }
+
+// after calling, the prebiously defined header struct will be populated with
+// all necessary info... proceed to write header after
+void fill_header(Header * header, char file_path){
+	memset(header,'\0',sizeof(Heasder));
+	struct stat filestats;
+	if(lstat(".",&filestats) !=0){
+        perror("Error getting stat of path in fill_header()");
+        exit(1);
+        }
+	//fill the header structs fields with data from stat, need to build
+	//a function to take destination of header->mode etc and source of
+	//stat.st_mode etc and convert the int held by st_mode to octal
+	
+
+
+	//handle the differences between strict and non strict, magic, version
+	// set the type flag by checking if reg or directory etc
+	
+
+	
+}
