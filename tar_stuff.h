@@ -4,8 +4,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <dirent.h>
+#include <unistd.h>
 
 #define ON 1
 #define OFF 0
@@ -45,7 +47,7 @@ typedef struct {
 
 
 Options *check_options(char *options);
-void traverse_files(char *path, int path_index, Options *opts);
+void traverse_files(char *path, char *name, int path_index, Options *opts);
 
 
 
