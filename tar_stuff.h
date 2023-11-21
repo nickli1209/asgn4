@@ -19,7 +19,7 @@
 #define MTIME_OFFSET 136
 
 
-#define PATH_MAX 255
+#define PATH_MAX 256
 
 
 typedef struct{
@@ -48,7 +48,7 @@ typedef struct {
 
 Options *check_options(char *options);
 void traverse_files(char *path, char *name, Options *opts);
-
+void int_to_octal(char * dest, int size, unsigned long val);
 
 
 #endif
