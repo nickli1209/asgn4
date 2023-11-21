@@ -27,6 +27,10 @@ int main(int argc, char *argv[]) {
 		}
 		/* traverse every file in path argument */
 		for (i = 3; i < argc; i++) {
+			if (strlen(argv[i]) > MAX_PATH) {
+				fprintf(stderr, "pathname over 256 characters");
+				exit(EXIT_FAILURE);
+			}
 			pathlen = strlen(argv[i]) + 1;
 			memmove(path, argv[i], pathlen);
 			head = traverse_files(head, path, opts);

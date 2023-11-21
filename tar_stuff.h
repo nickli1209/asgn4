@@ -56,12 +56,15 @@ struct Node{
 Options *check_options(char *options);
 Node *traverse_files(Node *head, char *path, Options *opts);
 Node *insert_end(Node *head, Header *header);
+
+/* Header stuff */
 Header *pop_header(char *name, struct stat *sb);
 Header *pop_name(Header *header, char *fullpath);
+Header *pop_modeIDs(Header *header, struct stat *sb);
 
-/*
+/* helpers */
 void int_to_octal(char * dest, int size, unsigned long val);
-*/
+
 
 #endif
 

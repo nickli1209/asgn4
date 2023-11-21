@@ -30,6 +30,11 @@ Node *traverse_files(Node *head, char *path, Options *opts) {
 		/* skip over '.' and '..' entries  */
 		if (strcmp(ent->d_name, ".") != 0 && 
 		strcmp(ent->d_name, "..") != 0) {
+				/* check to make sure path isn't too long before creating it*/
+				if (strlen(path) + strlen(ent->d_name) > MAX_PATH) {
+					fprintf(stderr, "pathname over 256 characters");
+					exit(EXIT_FAILURE);
+				}
 				/* format new path, store in fullpath */
 				snprintf(fullpath, MAX_PATH, "%s/%s", path, ent->d_name);
 
@@ -129,6 +134,11 @@ Header *pop_name(Header *header, char *fullpath) {
     strncpy(header->prefix, fullpath, index-1); /* -1 since we don't need the slash */
   }
   return header;
+}
+
+/* TODO */
+Header *pop_modeIDs(Header *header, struct stat *sb) {
+
 }
 /*
 // after calling, the prebiously defined header struct will be populated with
