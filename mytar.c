@@ -29,7 +29,7 @@ int main(int argc, char *argv[]) {
 			pathlen = strlen(argv[i]);
 			memmove(path, argv[i], pathlen);
 			path[pathlen] = '\0';
-			traverse_files(path, path, opts);
+			traverse_files(path, opts);
 		}	
 	}	
 
