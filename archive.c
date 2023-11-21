@@ -1,11 +1,16 @@
 #include "tar_stuff.h"
 
-void traverse_files(char *path, Options *opts) {
+Node *traverse_files(Node *head, char *path, Options *opts) {
 	DIR *dir; /* current directory */
 	struct dirent *ent; /* entries inside dir */
 	struct stat sb; /* stat buffer for entries */
-	char fullpath[PATH_MAX]; /* holds full path */
+	char fullpath[MAX_PATH]; /* holds full path */
+	Header *header;
 	
+	
+	header = pop_header(path);
+	head = insert_end(head, header);
+
 	/* if verbose option on, print current directory path*/
 	if (opts->v) {
 		printf("%s/\n", path);
@@ -20,9 +25,10 @@ void traverse_files(char *path, Options *opts) {
 	/* iterate through current's entries */
 	while ((ent = readdir(dir)) != NULL) { 	/* what do I do if I can't read an entry? */
 		/* skip over '.' and '..' entries  */
-		if (strcmp(ent->d_name, ".") != 0 && strcmp(ent->d_name, "..") != 0) {
+		if (strcmp(ent->d_name, ".") != 0 && 
+		strcmp(ent->d_name, "..") != 0) {
 				/* format new path, store in fullpath */
-				snprintf(fullpath, PATH_MAX, "%s/%s", path, ent->d_name);
+				snprintf(fullpath, MAX_PATH, "%s/%s", path, ent->d_name);
 
 				/* store entry info into sb */
 				if (lstat(fullpath, &sb) == -1) {
@@ -33,9 +39,11 @@ void traverse_files(char *path, Options *opts) {
 
 				/* if it's a directory, recurse */
 				if (S_ISDIR(sb.st_mode) && !S_ISLNK(sb.st_mode)) {
-					traverse_files(fullpath, opts);
+					head = traverse_files(head, fullpath, opts);
 				} else {
 					/* else print path if verbose */
+					header = pop_header(fullpath);
+					head = insert_end(head, header);
 					if (opts->v) {
 						printf("%s\n", fullpath);
 					}
@@ -43,12 +51,69 @@ void traverse_files(char *path, Options *opts) {
 			}
 	}
 	closedir(dir);
+	return head;
 }
 
+Node *insert_end(Node *head, Header *header) {
+  Node *new = malloc(sizeof(Node));
+	Node *cur;
+  new->header = header;
+  new->next = NULL;
+
+  if (head == NULL) {
+    head = new;
+  } else {
+    cur = head;
+    while (cur->next != NULL) {
+      cur = cur->next;
+    }
+    cur->next = new;
+  }
+  return head;
+}
+
+Header *pop_header(char *name) {
+	Header *header;
+	if ((header = malloc(sizeof(Header))) == NULL) {
+		perror("malloc");
+		exit(EXIT_FAILURE);
+	}
+	header = pop_name(header, name);
+	return header;
+}
+
+Header *pop_name(Header *header, char *fullpath) {
+  unsigned int index;
+  char prefix[155];
+  char name[100];
+
+  memset(prefix, '\0', 155);
+  memset(name, '\0', 100);
+
+  if (strlen(fullpath) <= 100) {
+    strncpy(name, fullpath, strlen(fullpath));
+  } else {
+    index = strlen(fullpath) - 100;
+    while (fullpath[index] != '/') {
+      if (index >= strlen(fullpath)-1) {
+        fprintf(stderr, "pathname too long");
+        exit(EXIT_FAILURE);
+      }
+      index++;
+    }
+    index++;
+    strncpy(name, &fullpath[index], strlen(fullpath) - index);
+    strncpy(prefix, fullpath, index-1);
+  }
+  strcpy(header->name, name);
+  strcpy(header->prefix, prefix);
+  return header;
+}
+/*
 // after calling, the prebiously defined header struct will be populated with
 // all necessary info... proceed to write header after
 void fill_header(Header * header, char file_path){
-	memset(header,'\0',sizeof(Heasder));
+	memset(header,'\0',sizeof(Header));
 	struct stat filestats;
 	if(lstat(".",&filestats) !=0){
         perror("Error getting stat of path in fill_header()");
@@ -133,6 +198,7 @@ void fill_header(Header * header, char file_path){
 	// still need to populate magic, version,chksum,devmajor,devminor
 	
 }
+*/
 
 
 

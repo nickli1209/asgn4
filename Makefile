@@ -2,7 +2,7 @@ CC = gcc
 
 LD = gcc
 
-CFLAGS = -Wall -g 
+CFLAGS = -Wall -Wextra -g -ansi -pedantic -static -std=gnu99
 
 LDFLAGS = -g
 

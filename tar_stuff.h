@@ -10,7 +10,6 @@
 #include <unistd.h>
 
 #define ON 1
-#define OFF 0
 
 #define NAME_OFFSET 0
 #define MODE_OFFSET 100
@@ -45,10 +44,12 @@ typedef struct {
 	char prefix[155];
 }Header;
 
-typedef struct{
+typedef struct Node Node;
+
+struct Node{
 	Header *header;
-  struct Node *next;
-}Node;
+	struct Node *next;
+};
 
 Options *check_options(char *options);
 Node *traverse_files(Node *head, char *path, Options *opts);
