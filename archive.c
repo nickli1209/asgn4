@@ -158,10 +158,10 @@ void pop_name(Header *header, char *fullpath) {
   return;
 }
 
-/* populates header user/group IDs - if S option,
+/* TODO - populates header user/group IDs - if S option,
  *  use insert_special_int function */
 void pop_IDs(Header *header, struct stat *sb, Options *opts) {
-	if (opts->S) {
+	if (!opts->S) {
 		insert_special_int(header->uid, sizeof(header->uid), sb->st_uid);
 		insert_special_int(header->gid, sizeof(header->gid), sb->st_gid);
 	} else {
