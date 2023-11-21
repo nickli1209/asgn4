@@ -1,11 +1,14 @@
 #include "tar_stuff.h"
 
+/* takes head of linked list, path string, and options,
+ * does a preorder DFS of file tree. returns head of linked
+ * list of Header structs */
 Node *traverse_files(Node *head, char *path, Options *opts) {
 	DIR *dir; /* current directory */
 	struct dirent *ent; /* entries inside dir */
 	struct stat sb; /* stat buffer for entries */
 	char fullpath[MAX_PATH]; /* holds full path */
-	Header *header;
+	Header *header; /* header info */
 	
 	
 	header = pop_header(path);
@@ -54,15 +57,26 @@ Node *traverse_files(Node *head, char *path, Options *opts) {
 	return head;
 }
 
+/* takes head Node and Header structs, creates Node out 
+ * of Header and inserts it to end of linked list. returns head*/
 Node *insert_end(Node *head, Header *header) {
-  Node *new = malloc(sizeof(Node));
-	Node *cur;
+  Node *new; /* Node being inserted */
+	Node *cur; /* used for traversing to end */
+
+	/* malloc space for new Node */
+	if ((new = malloc(sizeof(Node))) == NULL) {
+		perror("malloc");
+		exit(EXIT_FAILURE);
+	}
+	/* populate new Node with Header's info */
   new->header = header;
   new->next = NULL;
 
+	/* if list is empty, assign head to new Node */
   if (head == NULL) {
     head = new;
   } else {
+		/* else iterate from head to end, set end to new */
     cur = head;
     while (cur->next != NULL) {
       cur = cur->next;
@@ -72,6 +86,7 @@ Node *insert_end(Node *head, Header *header) {
   return head;
 }
 
+/* IN PROGRESS */
 Header *pop_header(char *name) {
 	Header *header;
 	if ((header = malloc(sizeof(Header))) == NULL) {
@@ -82,19 +97,26 @@ Header *pop_header(char *name) {
 	return header;
 }
 
+/* called in pop_header. Takes Header and pathname string,
+ * populates header name and prefix with pathname */
 Header *pop_name(Header *header, char *fullpath) {
-  unsigned int index;
-  char prefix[155];
-  char name[100];
+  unsigned int index; /* current index, used if prefix is needed */
 
-  memset(prefix, '\0', 155);
-  memset(name, '\0', 100);
+	/* memset both fields to NULL char so if there is space
+	 * for one we do not have to add it later */
+  memset(header->prefix, '\0', MAX_PREFIX); 
+  memset(header->name, '\0', MAX_NAME);
 
-  if (strlen(fullpath) <= 100) {
-    strncpy(name, fullpath, strlen(fullpath));
+	/* if the length is 100 chars or less, copy it to name
+	 * we can use strlen since NULL char is optional */
+  if (strlen(fullpath) <= MAX_NAME) {
+    strncpy(header->name, fullpath, strlen(fullpath));
   } else {
-    index = strlen(fullpath) - 100;
+		/* else move back 100 chars, then move forward until
+		 * encountering a slash OR getting to end of string */
+    index = strlen(fullpath) - MAX_NAME - 1;
     while (fullpath[index] != '/') {
+			/* if the end is reached, throw an error */
       if (index >= strlen(fullpath)-1) {
         fprintf(stderr, "pathname too long");
         exit(EXIT_FAILURE);
@@ -102,11 +124,11 @@ Header *pop_name(Header *header, char *fullpath) {
       index++;
     }
     index++;
-    strncpy(name, &fullpath[index], strlen(fullpath) - index);
-    strncpy(prefix, fullpath, index-1);
+		/* use index to seperate which strings are copied to 
+		 * name and prefix strings */
+    strncpy(header->name, &fullpath[index], strlen(fullpath) - index);
+    strncpy(header->prefix, fullpath, index-1); /* -1 since we don't need the slash */
   }
-  strcpy(header->name, name);
-  strcpy(header->prefix, prefix);
   return header;
 }
 /*

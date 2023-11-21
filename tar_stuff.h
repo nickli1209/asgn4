@@ -19,6 +19,8 @@
 
 
 #define MAX_PATH 256
+#define MAX_NAME 100
+#define MAX_PREFIX 255
 
 
 typedef struct{
