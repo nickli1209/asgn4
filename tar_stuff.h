@@ -20,7 +20,7 @@
 
 #define MAX_PATH 256
 #define MAX_NAME 100
-#define MAX_PREFIX 255
+#define MAX_PREFIX 155
 
 
 typedef struct{
@@ -58,9 +58,9 @@ Node *traverse_files(Node *head, char *path, Options *opts);
 Node *insert_end(Node *head, Header *header);
 
 /* Header stuff */
-Header *pop_header(char *name, struct stat *sb);
-Header *pop_name(Header *header, char *fullpath);
-Header *pop_modeIDs(Header *header, struct stat *sb);
+Header *create_header(char *name, struct stat *sb);
+void pop_name(Header *header, char *fullpath);
+void pop_IDs(Header *header, struct stat *sb);
 
 /* helpers */
 void int_to_octal(char * dest, int size, unsigned long val);

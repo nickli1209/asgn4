@@ -9,9 +9,14 @@ Node *traverse_files(Node *head, char *path, Options *opts) {
 	struct stat sb; /* stat buffer for entries */
 	char fullpath[MAX_PATH]; /* holds full path */
 	Header *header; /* header info */
+
+	/* store entry info into sb */
+	if (lstat(path, &sb) == -1) {
+		perror("lstat");
+		exit(EXIT_FAILURE); /* prob shouldn't exit here */
+	}
 	
-	
-	header = pop_header(path, &sb);
+	header = create_header(path, &sb);
 	head = insert_end(head, header);
 
 	/* if verbose option on, print current directory path*/
@@ -50,7 +55,7 @@ Node *traverse_files(Node *head, char *path, Options *opts) {
 					head = traverse_files(head, fullpath, opts);
 				} else {
 					/* else print path if verbose */
-					header = pop_header(fullpath, &sb);
+					header = create_header(fullpath, &sb);
 					head = insert_end(head, header);
 					if (opts->v) {
 						printf("%s\n", fullpath);
@@ -91,26 +96,50 @@ Node *insert_end(Node *head, Header *header) {
   return head;
 }
 
-/* IN PROGRESS */
-Header *pop_header(char *name, struct stat *sb) {
+/* TODO */
+Header *create_header(char *name, struct stat *sb) {
 	Header *header;
 	if ((header = malloc(sizeof(Header))) == NULL) {
 		perror("malloc");
 		exit(EXIT_FAILURE);
 	}
-	header = pop_name(header, name);
+
+	pop_name(header, name); /* name */
+
+	printf("actual mode: %o\n", sb->st_mode); /* for testing */
+	/* int_to_octal NULL terminates w/ snprintf, so we are good here */
+	 /* if we can't figure out why we need the mask, let's leave as is */
+	int_to_octal(header->mode, sizeof(header->mode), sb->st_mode); /* mode */
+	printf("header mode: %s\n", header->mode); /* for testing */
+
+	pop_IDs(header, sb); /* uid and gid */
+
+	/* size */
+	if (!S_ISLNK(sb->st_mode) && !S_ISDIR(sb->st_mode)) {
+		int_to_octal(header->size, sizeof(header->size), sb->st_size);
+	} else {
+		int_to_octal(header->size, sizeof(header->size), 0);
+	}
+
+	/* what the fuck */
+	printf("real mtime: %o\n", sb->mtim);
+	int_to_octal(header->mtime, sizeof(header->mtime), sb->st_mtim);
+	printf("header mtime: %s\n", header->mtime);
+
 	return header;
 }
 
-/* called in pop_header. Takes Header and pathname string,
+/* called in create_header. Takes Header and pathname string,
  * populates header name and prefix with pathname */
-Header *pop_name(Header *header, char *fullpath) {
+void pop_name(Header *header, char *fullpath) {
   unsigned int index; /* current index, used if prefix is needed */
 
 	/* memset both fields to NULL char so if there is space
 	 * for one we do not have to add it later */
+	/* maybe redundant? */
   memset(header->prefix, '\0', MAX_PREFIX); 
   memset(header->name, '\0', MAX_NAME);
+
 	/* if the length is 100 chars or less, copy it to name
 	 * we can use strlen since NULL char is optional */
   if (strlen(fullpath) <= MAX_NAME) {
@@ -133,12 +162,21 @@ Header *pop_name(Header *header, char *fullpath) {
     strncpy(header->name, &fullpath[index], strlen(fullpath) - index);
     strncpy(header->prefix, fullpath, index-1); /* -1 since we don't need the slash */
   }
-  return header;
+  return;
 }
 
-/* TODO */
-Header *pop_modeIDs(Header *header, struct stat *sb) {
+/* TODO - populates mode, user/group IDs */
+void pop_IDs(Header *header, struct stat *sb) {
+	/* TODO: implement Nico's functions for non-strict version
+	 * for user and group IDs */
+	printf("actual uid: %o\n", sb->st_uid); /* for testing */
+	int_to_octal(header->uid, sizeof(header->uid), sb->st_uid);
+	printf("header uid: %s\n", header->uid); /* for testing */
 
+	printf("actual gid: %o\n", sb->st_gid); /* for testing */
+	int_to_octal(header->gid, sizeof(header->gid), sb->st_gid);
+	printf("header gid: %s\n", header->gid); /* for testing */
+	return;
 }
 /*
 // after calling, the prebiously defined header struct will be populated with
