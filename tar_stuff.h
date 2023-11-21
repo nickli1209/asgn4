@@ -56,7 +56,7 @@ struct Node{
 Options *check_options(char *options);
 Node *traverse_files(Node *head, char *path, Options *opts);
 Node *insert_end(Node *head, Header *header);
-Header *pop_header(char *name);
+Header *pop_header(char *name, struct stat *sb);
 Header *pop_name(Header *header, char *fullpath);
 
 /*
