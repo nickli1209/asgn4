@@ -47,7 +47,7 @@ typedef struct {
 
 
 Options *check_options(char *options);
-void traverse_files(char *path, char *name, Options *opts);
+void traverse_files(char *path, Options *opts);
 
 
 
