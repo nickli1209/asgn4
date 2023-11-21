@@ -50,9 +50,8 @@ Options *check_options(char *options) {
 }
 
 /* function to store octal string of val into dest */
-/*
 void int_to_octal(char *dest,int size, unsigned long val){
-	snprintf(dest,size,"%0*1o",size-1,val);
+	snprintf(dest,size,"%0*lo",size-1,val);
 	dest[size-1]='\0';
 }
-*/
+
