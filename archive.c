@@ -16,7 +16,7 @@ Node *traverse_files(Node *head, char *path, Options *opts) {
 		exit(EXIT_FAILURE); /* prob shouldn't exit here */
 	}
 	
-	header = create_header(path, &sb);
+	header = create_header(path, &sb, opts);
 	head = insert_end(head, header);
 
 	/* if verbose option on, print current directory path*/
@@ -55,7 +55,7 @@ Node *traverse_files(Node *head, char *path, Options *opts) {
 					head = traverse_files(head, fullpath, opts);
 				} else {
 					/* else print path if verbose */
-					header = create_header(fullpath, &sb);
+					header = create_header(fullpath, &sb, opts);
 					head = insert_end(head, header);
 					if (opts->v) {
 						printf("%s\n", fullpath);
@@ -97,7 +97,7 @@ Node *insert_end(Node *head, Header *header) {
 }
 
 /* TODO */
-Header *create_header(char *name, struct stat *sb) {
+Header *create_header(char *name, struct stat *sb, Options *opts) {
 	Header *header;
 	if ((header = malloc(sizeof(Header))) == NULL) {
 		perror("malloc");
@@ -105,15 +105,8 @@ Header *create_header(char *name, struct stat *sb) {
 	}
 
 	pop_name(header, name); /* name */
-
-	printf("actual mode: %o\n", sb->st_mode); /* for testing */
-	/* int_to_octal NULL terminates w/ snprintf, so we are good here */
-	 /* if we can't figure out why we need the mask, let's leave as is */
 	int_to_octal(header->mode, sizeof(header->mode), sb->st_mode); /* mode */
-	printf("header mode: %s\n", header->mode); /* for testing */
-
-	pop_IDs(header, sb); /* uid and gid */
-
+	pop_IDs(header, sb, opts); /* uid and gid */
 	/* size */
 	if (!S_ISLNK(sb->st_mode) && !S_ISDIR(sb->st_mode)) {
 		int_to_octal(header->size, sizeof(header->size), sb->st_size);
@@ -121,10 +114,10 @@ Header *create_header(char *name, struct stat *sb) {
 		int_to_octal(header->size, sizeof(header->size), 0);
 	}
 
-	/* what the fuck */
-	printf("real mtime: %o\n", sb->mtim);
-	int_to_octal(header->mtime, sizeof(header->mtime), sb->st_mtim);
-	printf("header mtime: %s\n", header->mtime);
+	/* what the fuck - mtime */
+	// printf("real mtime: %o\n", sb->mtim);
+	// int_to_octal(header->mtime, sizeof(header->mtime), sb->st_mtim);
+	// printf("header mtime: %s\n", header->mtime);
 
 	return header;
 }
@@ -165,19 +158,19 @@ void pop_name(Header *header, char *fullpath) {
   return;
 }
 
-/* TODO - populates mode, user/group IDs */
-void pop_IDs(Header *header, struct stat *sb) {
-	/* TODO: implement Nico's functions for non-strict version
-	 * for user and group IDs */
-	printf("actual uid: %o\n", sb->st_uid); /* for testing */
-	int_to_octal(header->uid, sizeof(header->uid), sb->st_uid);
-	printf("header uid: %s\n", header->uid); /* for testing */
-
-	printf("actual gid: %o\n", sb->st_gid); /* for testing */
-	int_to_octal(header->gid, sizeof(header->gid), sb->st_gid);
-	printf("header gid: %s\n", header->gid); /* for testing */
+/* populates header user/group IDs - if S option,
+ *  use insert_special_int function */
+void pop_IDs(Header *header, struct stat *sb, Options *opts) {
+	if (opts->S) {
+		insert_special_int(header->uid, sizeof(header->uid), sb->st_uid);
+		insert_special_int(header->gid, sizeof(header->gid), sb->st_gid);
+	} else {
+		int_to_octal(header->uid, sizeof(header->uid), sb->st_uid);
+		int_to_octal(header->gid, sizeof(header->gid), sb->st_gid);
+	}
 	return;
 }
+
 /*
 // after calling, the prebiously defined header struct will be populated with
 // all necessary info... proceed to write header after
