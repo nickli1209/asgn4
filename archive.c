@@ -11,7 +11,7 @@ Node *traverse_files(Node *head, char *path, Options *opts) {
 	Header *header; /* header info */
 	
 	
-	header = pop_header(path);
+	header = pop_header(path, &sb);
 	head = insert_end(head, header);
 
 	/* if verbose option on, print current directory path*/
@@ -45,7 +45,7 @@ Node *traverse_files(Node *head, char *path, Options *opts) {
 					head = traverse_files(head, fullpath, opts);
 				} else {
 					/* else print path if verbose */
-					header = pop_header(fullpath);
+					header = pop_header(fullpath, &sb);
 					head = insert_end(head, header);
 					if (opts->v) {
 						printf("%s\n", fullpath);
@@ -87,7 +87,7 @@ Node *insert_end(Node *head, Header *header) {
 }
 
 /* IN PROGRESS */
-Header *pop_header(char *name) {
+Header *pop_header(char *name, struct stat *sb) {
 	Header *header;
 	if ((header = malloc(sizeof(Header))) == NULL) {
 		perror("malloc");
@@ -106,7 +106,6 @@ Header *pop_name(Header *header, char *fullpath) {
 	 * for one we do not have to add it later */
   memset(header->prefix, '\0', MAX_PREFIX); 
   memset(header->name, '\0', MAX_NAME);
-
 	/* if the length is 100 chars or less, copy it to name
 	 * we can use strlen since NULL char is optional */
   if (strlen(fullpath) <= MAX_NAME) {
