@@ -1,6 +1,7 @@
 #include "tar_stuff.h"
 
 int main(int argc, char *argv[]) {
+	Node *head = NULL;
 	Options *opts;
 	char *path;
 	int pathlen, i;
@@ -26,10 +27,9 @@ int main(int argc, char *argv[]) {
 		}
 		/* traverse every file in path argument */
 		for (i = 3; i < argc; i++) {
-			pathlen = strlen(argv[i]);
+			pathlen = strlen(argv[i]) + 1;
 			memmove(path, argv[i], pathlen);
-			path[pathlen] = '\0';
-			traverse_files(path, opts);
+			head = traverse_files(head, path, opts);
 		}	
 	}	
 

@@ -19,7 +19,7 @@
 #define MTIME_OFFSET 136
 
 
-#define PATH_MAX 256
+#define MAX_PATH 256
 
 
 typedef struct{
@@ -45,11 +45,20 @@ typedef struct {
 	char prefix[155];
 }Header;
 
+typedef struct{
+	Header *header;
+  struct Node *next;
+}Node;
 
 Options *check_options(char *options);
-void traverse_files(char *path, Options *opts);
-void int_to_octal(char * dest, int size, unsigned long val);
+Node *traverse_files(Node *head, char *path, Options *opts);
+Node *insert_end(Node *head, Header *header);
+Header *pop_header(char *name);
+Header *pop_name(Header *header, char *fullpath);
 
+/*
+void int_to_octal(char * dest, int size, unsigned long val);
+*/
 
 #endif
 
