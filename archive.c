@@ -158,15 +158,28 @@ void pop_name(Header *header, char *fullpath) {
   return;
 }
 
-/* TODO - populates header user/group IDs - if S option,
- *  use insert_special_int function */
+/* populates header with user/group IDs */
 void pop_IDs(Header *header, struct stat *sb, Options *opts) {
-	if (!opts->S) {
+	if (sb->st_uid <= 07777777) {
+		/* if the st_uid can fit into 7 octal digits, create octal string and 
+		 * throw it in the header */
+		int_to_octal(header->uid, sizeof(header->uid), sb->st_uid);
+	} else if (!opts->S) {
+		/* else if S option not ON, use insert_special_int */
 		insert_special_int(header->uid, sizeof(header->uid), sb->st_uid);
+	} else {
+		/* otherwise, throw error */
+		fprintf(stderr, "user ID does not fit in header: turn off S option\n");
+		exit(EXIT_FAILURE);
+	}
+	/* likewise for group IDs */
+	if (sb->st_gid <= 07777777) {
+		int_to_octal(header->gid, sizeof(header->gid), sb->st_gid);
+	} else if (!opts->S) {
 		insert_special_int(header->gid, sizeof(header->gid), sb->st_gid);
 	} else {
-		int_to_octal(header->uid, sizeof(header->uid), sb->st_uid);
-		int_to_octal(header->gid, sizeof(header->gid), sb->st_gid);
+		fprintf(stderr, "group ID does not fit in header: turn off S option\n");
+		exit(EXIT_FAILURE);
 	}
 	return;
 }
