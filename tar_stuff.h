@@ -62,6 +62,8 @@ Node *insert_end(Node *head, Header *header);
 Header *create_header(char *name, struct stat *sb, Options *opts);
 void pop_name(Header *header, char *fullpath);
 void pop_IDs(Header *header, struct stat *sb, Options *opts);
+void pop_typeflag(Header *header, struct stat *sb);
+void pop_linkname(Header *header, char *path, struct stat *sb);
 
 /* helpers */
 void int_to_octal(char * dest, int size, unsigned long val);

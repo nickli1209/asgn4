@@ -124,6 +124,7 @@ Header *create_header(char *name, struct stat *sb, Options *opts) {
 	/* checksum */
 
 	pop_typeflag(header, sb); /* typeflag */
+	pop_linkname(hedaer, name, sb); /* linkname */
 
 
 
@@ -205,7 +206,16 @@ void pop_typeflag(Header *header, struct stat *sb) {
 	return;
 }
 
-void pop_linkname(Header *header, struct stat *sb);
+void pop_linkname(Header *header, char *path, struct stat *sb) {
+	if (S_ISLNK(sb->st_mode)) {
+		if (readlink(path, header->linkname, sizeof(header->linkname)) == -1) {
+			perror("readlink");
+			exit(EXIT_FAILURE);
+		}
+	} else {
+		header->linkname[0] = '\0';
+	}
+}
 
 /*
 // after calling, the prebiously defined header struct will be populated with
