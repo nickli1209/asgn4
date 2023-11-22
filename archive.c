@@ -124,7 +124,8 @@ Header *create_header(char *name, struct stat *sb, Options *opts) {
 	/* checksum */
 
 	pop_typeflag(header, sb); /* typeflag */
-	pop_linkname(hedaer, name, sb); /* linkname */
+	pop_linkname(header, name, sb); /* linkname */
+	strcpy(header->magic, "ustar"); /* magic */
 
 
 
