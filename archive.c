@@ -127,7 +127,7 @@ Header *create_header(char *name, struct stat *sb, Options *opts) {
 	pop_linkname(header, name, sb); /* linkname */
 	strcpy(header->magic, "ustar"); /* magic */
 	strncpy(header->version, "00", 2); /* version (NOT NULL terminated) */
-	
+	pop_symnames(header, sb); /* uname and gname */
 
 
 
@@ -218,6 +218,24 @@ void pop_linkname(Header *header, char *path, struct stat *sb) {
 	} else {
 		header->linkname[0] = '\0';
 	}
+}
+
+void pop_symnames(Header *header, struct stat *sb) {
+	struct passwd *pw = getpwuid(sb->st_uid);
+	struct group *grp = getgrgid(sb->st_gid);
+
+	if (pw == NULL) {
+		perror("getpwuid");
+		exit(EXIT_FAILURE);
+	}
+	if (grp == NULL) {
+		perror("getgrgid");
+		exit(EXIT_FAILURE);
+	}
+
+	strncpy(header->uname, pw->pw_name, sizeof(header->uname));
+	strncpy(header->gname, grp->gr_name, sizeof(header->gname));
+	return;
 }
 
 /*

@@ -9,6 +9,8 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <pwd.h>
+#include	<grp.h>
 
 #define ON 1
 
@@ -64,6 +66,7 @@ void pop_name(Header *header, char *fullpath);
 void pop_IDs(Header *header, struct stat *sb, Options *opts);
 void pop_typeflag(Header *header, struct stat *sb);
 void pop_linkname(Header *header, char *path, struct stat *sb);
+void pop_symnames(Header *header, struct stat *sb);
 
 /* helpers */
 void int_to_octal(char * dest, int size, unsigned long val);
