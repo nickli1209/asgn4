@@ -114,10 +114,18 @@ Header *create_header(char *name, struct stat *sb, Options *opts) {
 		int_to_octal(header->size, sizeof(header->size), 0);
 	}
 
+	/* TODO */
 	/* what the fuck - mtime */
+	/* doing later
 	printf("real mtime: %o\n", sb->mtim);
 	int_to_octal(header->mtime, sizeof(header->mtime), sb->st_mtim);
 	printf("header mtime: %s\n", header->mtime);
+	*/
+	/* checksum */
+
+	pop_typeflag(header, sb); /* typeflag */
+
+
 
 	return header;
 }
@@ -183,6 +191,21 @@ void pop_IDs(Header *header, struct stat *sb, Options *opts) {
 	}
 	return;
 }
+
+void pop_typeflag(Header *header, struct stat *sb) {
+	if (S_ISREG(sb->st_mode)) {
+		header->typeflag = '0';
+	} else if (S_ISLNK(sb->st_mode)) {
+		header->typeflag = '2';
+	} else if (S_ISDIR(sb->st_mode)) {
+		header->typeflag = '5';
+	} else {
+		header->typeflag = '\0';
+	}
+	return;
+}
+
+void pop_linkname(Header *header, struct stat *sb);
 
 /*
 // after calling, the prebiously defined header struct will be populated with
