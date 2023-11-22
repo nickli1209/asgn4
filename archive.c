@@ -116,8 +116,8 @@ Header *create_header(char *name, struct stat *sb, Options *opts) {
 
 	/* TODO */
 	/* what the fuck - mtime */
-	/* doing later
-	printf("real mtime: %o\n", sb->mtim);
+	/*doing later
+	printf("real mtime: %o\n", sb->st_mtim);
 	int_to_octal(header->mtime, sizeof(header->mtime), sb->st_mtim);
 	printf("header mtime: %s\n", header->mtime);
 	*/
