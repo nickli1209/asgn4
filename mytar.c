@@ -25,7 +25,8 @@ int main(int argc, char *argv[]) {
 			perror("malloc on path");
 			exit(EXIT_FAILURE);	
 		}
-		if ((tarfile = open(argv[2], O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IRGRP | S_IROTH)) == -1) {
+		if ((tarfile = open(argv[2], O_RDWR | O_CREAT | O_TRUNC, 
+		S_IRWXU | S_IRWXG)) == -1) {
 			perror("open");
 			exit(EXIT_FAILURE);
 		}
