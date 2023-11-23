@@ -62,7 +62,7 @@ Node *insert_end(Node *head, Header *header);
 Header *create_header(char *name, struct stat *sb, Options *opts);
 void pop_name(Header *header, char *fullpath);
 void pop_IDs(Header *header, struct stat *sb, Options *opts);
-
+void pop_chksum(Header *header);
 /* helpers */
 void int_to_octal(char * dest, int size, unsigned long val);
 int insert_special_int(char *where, size_t size, int32_t val);

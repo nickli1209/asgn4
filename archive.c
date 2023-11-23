@@ -103,22 +103,27 @@ Header *create_header(char *name, struct stat *sb, Options *opts) {
 		perror("malloc");
 		exit(EXIT_FAILURE);
 	}
-
-	pop_name(header, name); /* name */
-	int_to_octal(header->mode, sizeof(header->mode), sb->st_mode); /* mode */
-	pop_IDs(header, sb, opts); /* uid and gid */
+	/*memsets all feilds in the header struct to 0
+ 	* so dont have to worry about it feild by field*/ 
+	memset(header,'\0',sizeof(Header));
+	/* name and prefix if needed*/
+	pop_name(header, name);
+	/* mode */
+	int_to_octal(header->mode, sizeof(header->mode), sb->st_mode);
+	/* uid and gid */
+	pop_IDs(header, sb, opts);
 	/* size */
 	if (!S_ISLNK(sb->st_mode) && !S_ISDIR(sb->st_mode)) {
 		int_to_octal(header->size, sizeof(header->size), sb->st_size);
 	} else {
 		int_to_octal(header->size, sizeof(header->size), 0);
 	}
-
-	/* what the fuck - mtime */
-	printf("real mtime: %o\n", sb->mtim);
-	int_to_octal(header->mtime, sizeof(header->mtime), sb->st_mtim);
-	printf("header mtime: %s\n", header->mtime);
-
+	/*  mtime--*/
+	int_to_octal(header->mtime, sizeof(header->mtime), (unsigned int)sb->st_mtime);
+	
+	/*check sum needs to be the final populate to ensure 
+ 	*correct size*/	 
+	pop_chksum(header);
 	return header;
 }
 
@@ -127,11 +132,11 @@ Header *create_header(char *name, struct stat *sb, Options *opts) {
 void pop_name(Header *header, char *fullpath) {
   unsigned int index; /* current index, used if prefix is needed */
 
-	/* memset both fields to NULL char so if there is space
-	 * for one we do not have to add it later */
-	/* maybe redundant? */
-  memset(header->prefix, '\0', MAX_PREFIX); 
-  memset(header->name, '\0', MAX_NAME);
+			/* memset both fields to NULL char so if there is space
+	 		* for one we do not have to add it later */
+			/* maybe redundant? */
+ 			 /*memset(header->prefix, '\0', MAX_PREFIX); 
+ 			 memset(header->name, '\0', MAX_NAME);*/
 
 	/* if the length is 100 chars or less, copy it to name
 	 * we can use strlen since NULL char is optional */
@@ -166,7 +171,10 @@ void pop_IDs(Header *header, struct stat *sb, Options *opts) {
 		int_to_octal(header->uid, sizeof(header->uid), sb->st_uid);
 	} else if (!opts->S) {
 		/* else if S option not ON, use insert_special_int */
-		insert_special_int(header->uid, sizeof(header->uid), sb->st_uid);
+		if(insert_special_int(header->uid, sizeof(header->uid), sb->st_uid)){
+			fprintf(stderr,"inserting special int failed");
+			exit(EXIT_FAILURE);	
+		}
 	} else {
 		/* otherwise, throw error */
 		fprintf(stderr, "user ID does not fit in header: turn off S option\n");
@@ -182,6 +190,19 @@ void pop_IDs(Header *header, struct stat *sb, Options *opts) {
 		exit(EXIT_FAILURE);
 	}
 	return;
+}
+
+void pop_chksum(Header *header){
+	/*sets chksum to spaces before hand for calculations*/
+	memset(header->chksum,' ',sizeof(header->chksum));
+	unsigned char *bytes= (unsigned char*) header;
+	unsigned long checksum=0;
+	int i;
+	for(size_t i=0;i<sizeof(Header);i++){
+		checksum+=bytes[i];
+	}
+	/*writes the octal value of total bytes*/
+	int_to_octal(header->chksum,sizeof(header->chksum),chksum);
 }
 
 /*
