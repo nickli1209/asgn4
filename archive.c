@@ -104,9 +104,13 @@ Header *create_header(char *name, struct stat *sb, Options *opts) {
 		exit(EXIT_FAILURE);
 	}
 
+	/* helps w/ NULL terminating */
+	memset(header, '\0', sizeof(Header));
+
 	pop_name(header, name); /* name */
 	int_to_octal(header->mode, sizeof(header->mode), sb->st_mode); /* mode */
 	pop_IDs(header, sb, opts); /* uid and gid */
+
 	/* size */
 	if (!S_ISLNK(sb->st_mode) && !S_ISDIR(sb->st_mode)) {
 		int_to_octal(header->size, sizeof(header->size), sb->st_size);
@@ -114,21 +118,15 @@ Header *create_header(char *name, struct stat *sb, Options *opts) {
 		int_to_octal(header->size, sizeof(header->size), 0);
 	}
 
-	/* TODO */
-	/* what the fuck - mtime */
-	/*doing later
-	printf("real mtime: %o\n", sb->st_mtim);
-	int_to_octal(header->mtime, sizeof(header->mtime), sb->st_mtim);
-	printf("header mtime: %s\n", header->mtime);
-	*/
-	/* checksum */
-
+	/* mtime */
+	int_to_octal(header->mtime, sizeof(header->mtime), (unsigned int)sb->st_mtime);
 	pop_typeflag(header, sb); /* typeflag */
 	pop_linkname(header, name, sb); /* linkname */
 	strcpy(header->magic, "ustar"); /* magic */
 	strncpy(header->version, "00", 2); /* version (NOT NULL terminated) */
 	pop_symnames(header, sb); /* uname and gname */
-	pop_chksum(header);
+	
+	pop_chksum(header); /* checksum */
 
 
 
@@ -139,12 +137,6 @@ Header *create_header(char *name, struct stat *sb, Options *opts) {
  * populates header name and prefix with pathname */
 void pop_name(Header *header, char *fullpath) {
   unsigned int index; /* current index, used if prefix is needed */
-
-	/* memset both fields to NULL char so if there is space
-	 * for one we do not have to add it later */
-	/* maybe redundant? */
-  memset(header->prefix, '\0', MAX_PREFIX); 
-  memset(header->name, '\0', MAX_NAME);
 
 	/* if the length is 100 chars or less, copy it to name
 	 * we can use strlen since NULL char is optional */
@@ -243,9 +235,9 @@ void pop_chksum(Header *header){
 	/*sets chksum to spaces before hand for calculations*/
 	memset(header->chksum,' ',sizeof(header->chksum));
 	unsigned char *bytes= (unsigned char*) header;
-	unsigned long checksum=0;
-	int i;
-	for(size_t i=0;i<sizeof(Header);i++){
+	unsigned int checksum=0;
+	size_t i;
+	for(i=0;i<sizeof(Header);i++){
 		checksum+=bytes[i];
 	}
 	/*writes the octal value of total bytes*/
