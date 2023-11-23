@@ -110,28 +110,26 @@ Header *create_header(char *name, struct stat *sb, Options *opts) {
 	pop_name(header, name); /* name */
 	int_to_octal(header->mode, sizeof(header->mode), sb->st_mode); /* mode */
 	pop_IDs(header, sb, opts); /* uid and gid */
-
 	/* size */
 	if (!S_ISLNK(sb->st_mode) && !S_ISDIR(sb->st_mode)) {
 		int_to_octal(header->size, sizeof(header->size), sb->st_size);
 	} else {
 		int_to_octal(header->size, sizeof(header->size), 0);
 	}
-
-	/* mtime */
-	int_to_octal(header->mtime, sizeof(header->mtime), (unsigned int)sb->st_mtime);
+	int_to_octal(header->mtime, sizeof(header->mtime),
+	 (unsigned int)sb->st_mtime); /* mtime */
 	pop_typeflag(header, sb); /* typeflag */
 	pop_linkname(header, name, sb); /* linkname */
 	strcpy(header->magic, "ustar"); /* magic */
 	strncpy(header->version, "00", 2); /* version (NOT NULL terminated) */
 	pop_symnames(header, sb); /* uname and gname */
-	pop_dev(header, sb);
+	pop_dev(header, sb); /* devmajor, devminor */
 	pop_chksum(header); /* checksum */
 	return header;
 }
 
-/* called in create_header. Takes Header and pathname string,
- * populates header name and prefix with pathname */
+/* takes Header and pathname string, populates header
+ *  name and prefix with pathname */
 void pop_name(Header *header, char *fullpath) {
   unsigned int index; /* current index, used if prefix is needed */
 
@@ -160,7 +158,8 @@ void pop_name(Header *header, char *fullpath) {
   return;
 }
 
-/* populates header with user/group IDs */
+/* takes header struct, stat buffer, and options struct, 
+ * populates header with user/group IDs */
 void pop_IDs(Header *header, struct stat *sb, Options *opts) {
 	if (sb->st_uid <= 07777777) {
 		/* if the st_uid can fit into 7 octal digits, create octal string and 
@@ -186,53 +185,64 @@ void pop_IDs(Header *header, struct stat *sb, Options *opts) {
 	return;
 }
 
+/* takes header struct and stat buffer, populates 
+ * typeflag field */
 void pop_typeflag(Header *header, struct stat *sb) {
 	if (S_ISREG(sb->st_mode)) {
-		header->typeflag = '0';
+		header->typeflag = '0'; /* if regular, set to '0' */
 	} else if (S_ISLNK(sb->st_mode)) {
-		header->typeflag = '2';
+		header->typeflag = '2'; /* if symlink, set to '2' */
 	} else if (S_ISDIR(sb->st_mode)) {
-		header->typeflag = '5';
+		header->typeflag = '5'; /* if directory, set to '5' */
 	} else {
-		header->typeflag = '\0';
+		/* else regular file (alternate), so set to NULL */
+		header->typeflag = '\0'; 
 	}
 	return;
 }
 
+/* takes header struct, pathname, and stat buffer, 
+ * populates linkname field */
 void pop_linkname(Header *header, char *path, struct stat *sb) {
 	char buf[MAX_PATH]; /* arbitrary length over 100 to ensure pathlen isn't too long */
 	if (S_ISLNK(sb->st_mode)) {
+		/* read link from path into buf, throw error on failure */
 		if (readlink(path, buf, MAX_PATH) == -1) {
 			perror("readlink");
 			exit(EXIT_FAILURE);
 		}
+		/* if strlen is greater than 100, can't fit into field */
 		if (strlen(buf) > 100) {
 			fprintf(stderr, "linkname too long");
 			exit(EXIT_FAILURE);
 		} else {
+			/* else copy string to checksum field */
 			strncpy(header->chksum, buf, MAX_NAME);
 		}
 	}
 }
 
+/* takes header struct and stat buffer, populates uname and gname fields */
 void pop_symnames(Header *header, struct stat *sb) {
-	struct passwd *pw = getpwuid(sb->st_uid);
-	struct group *grp = getgrgid(sb->st_gid);
-
+	struct passwd *pw = getpwuid(sb->st_uid); /* contains user name */
+	struct group *grp = getgrgid(sb->st_gid); /* contains group name */
+	/* if getpwuid failed, throw an error */
 	if (pw == NULL) {
 		perror("getpwuid");
 		exit(EXIT_FAILURE);
 	}
+	/* if getgrgid failed, throw an error */
 	if (grp == NULL) {
 		perror("getgrgid");
 		exit(EXIT_FAILURE);
 	}
-
+	/* write the strings to their corresponding fields */
 	strncpy(header->uname, pw->pw_name, sizeof(header->uname));
 	strncpy(header->gname, grp->gr_name, sizeof(header->gname));
 	return;
 }
 
+/* takes header, populates checksum field */
 void pop_chksum(Header *header){
 	/*sets chksum to spaces before hand for calculations*/
 	memset(header->chksum,' ',sizeof(header->chksum));
@@ -247,9 +257,12 @@ void pop_chksum(Header *header){
 	return;
 }
 
+/* takes header, struct stat, populates devmajor and devminor fields */
 void pop_dev(Header *header, struct stat *sb) {
-	unsigned int dev_maj;
-	unsigned int dev_min;
+	unsigned int dev_maj; /* major number */
+	unsigned int dev_min; /* minor number */
+	/* if special file, write major and minor number as octal strings
+	 * to their corresponding header fields */
 	if (S_ISCHR(sb->st_mode) || S_ISBLK(sb->st_mode)) {
 		dev_maj = major(sb->st_mode);
 		dev_min = minor(sb->st_mode);
