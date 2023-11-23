@@ -17,7 +17,8 @@ Node *traverse_files(Node *head, char *path, Options *opts, int tarfile) {
 	}
 	
 	header = create_header(path, &sb, opts);
-	head = insert_end(head, header);
+	write_header(header, path, tarfile);
+	//head = insert_end(head, header);
 
 	/* if verbose option on, print current directory path*/
 	if (opts->v) {
@@ -56,7 +57,8 @@ Node *traverse_files(Node *head, char *path, Options *opts, int tarfile) {
 				} else {
 					/* else print path if verbose */
 					header = create_header(fullpath, &sb, opts);
-					head = insert_end(head, header);
+					write_header(header, fullpath, tarfile);
+					//head = insert_end(head, header);
 					if (opts->v) {
 						printf("%s\n", fullpath);
 					}
@@ -270,6 +272,34 @@ void pop_dev(Header *header, struct stat *sb) {
 		int_to_octal(header->devmajor, sizeof(header->devmajor), dev_maj);
 		int_to_octal(header->devminor, sizeof(header->devminor), dev_min);
 	}
+	return;
+}
+
+void write_header(Header *header, char *path, int tarfile) {
+	uint8_t buf[BLOCK_SIZE];
+	int file, bytes_read, bytes_wrote, i;
+
+	if (write(tarfile, header, BLOCK_SIZE) == -1) {
+		perror("write");
+		exit(EXIT_FAILURE);
+	}
+	if ((file = open(path, O_RDONLY)) == -1) {
+		perror("open");
+		exit(EXIT_FAILURE);
+	}
+
+	while((bytes_read = read(file, buf, BLOCK_SIZE)) > 0) {
+		if (bytes_read < BLOCK_SIZE) {
+			for (i = bytes_read - 1; i < BLOCK_SIZE; i++) {
+				buf[i] = '\0';
+			}
+		}
+		if ((bytes_wrote = write(tarfile, buf, BLOCK_SIZE)) == -1) {
+			perror("write");
+			exit(EXIT_FAILURE);
+		} 
+	}
+	close(file);
 	return;
 }
 

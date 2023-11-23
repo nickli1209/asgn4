@@ -21,11 +21,11 @@
 #define SIZE_OFFSET 124
 #define MTIME_OFFSET 136
 
-
 #define MAX_PATH 256
 #define MAX_NAME 100
 #define MAX_PREFIX 155
 
+#define BLOCK_SIZE 512
 
 typedef struct{
     int c,t,x,v,f,S;
@@ -48,6 +48,7 @@ typedef struct {
 	char devmajor[8];
 	char devminor[8];
 	char prefix[155];//
+	char padding[12];
 }Header;
 
 typedef struct Node Node;
@@ -61,7 +62,7 @@ Options *check_options(char *options);
 Node *traverse_files(Node *head, char *path, Options *opts, int tarfile);
 Node *insert_end(Node *head, Header *header);
 
-/* Header stuff */
+/* header stuff */
 Header *create_header(char *name, struct stat *sb, Options *opts);
 void pop_name(Header *header, char *fullpath);
 void pop_IDs(Header *header, struct stat *sb, Options *opts);
@@ -70,6 +71,9 @@ void pop_linkname(Header *header, char *path, struct stat *sb);
 void pop_symnames(Header *header, struct stat *sb);
 void pop_chksum(Header *header);
 void pop_dev(Header *header, struct stat *sb);
+
+/* writing header stuff */
+void write_header(Header *header, char *path, int fd);
 
 /* helpers */
 void int_to_octal(char * dest, int size, unsigned long val);
