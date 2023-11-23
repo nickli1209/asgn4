@@ -31,22 +31,22 @@ typedef struct{
 }Options;
 
 typedef struct {
-	char name[100];
-	char mode[8];
-	char uid[8];
-	char gid[8];
-	char size[12];
-	char mtime[12];
+	char name[100];//			
+	char mode[8];//
+	char uid[8];//
+	char gid[8];//
+	char size[12];//
+	char mtime[12];//
 	char chksum[8];
-	char typeflag;
-	char linkname[100];
+	char typeflag;//
+	char linkname[100];//
 	char magic[6];  
 	char version[2];
-	char uname[32];
-	char gname[32];
+	char uname[32];//
+	char gname[32];//
 	char devmajor[8];
 	char devminor[8];
-	char prefix[155];
+	char prefix[155];//
 }Header;
 
 typedef struct Node Node;
@@ -68,6 +68,7 @@ void pop_typeflag(Header *header, struct stat *sb);
 void pop_linkname(Header *header, char *path, struct stat *sb);
 void pop_symnames(Header *header, struct stat *sb);
 
+void pop_chksum(Header *header);
 /* helpers */
 void int_to_octal(char * dest, int size, unsigned long val);
 int insert_special_int(char *where, size_t size, int32_t val);
