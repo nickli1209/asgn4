@@ -11,6 +11,7 @@
 #include <arpa/inet.h>
 #include <pwd.h>
 #include <grp.h>
+#include <fcntl.h>
 
 #define ON 1
 
@@ -57,7 +58,7 @@ struct Node{
 };
 
 Options *check_options(char *options);
-Node *traverse_files(Node *head, char *path, Options *opts);
+Node *traverse_files(Node *head, char *path, Options *opts, int tarfile);
 Node *insert_end(Node *head, Header *header);
 
 /* Header stuff */

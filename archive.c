@@ -3,7 +3,7 @@
 /* takes head of linked list, path string, and options,
  * does a preorder DFS of file tree. returns head of linked
  * list of Header structs */
-Node *traverse_files(Node *head, char *path, Options *opts) {
+Node *traverse_files(Node *head, char *path, Options *opts, int tarfile) {
 	DIR *dir; /* current directory */
 	struct dirent *ent; /* entries inside dir */
 	struct stat sb; /* stat buffer for entries */
@@ -52,7 +52,7 @@ Node *traverse_files(Node *head, char *path, Options *opts) {
 
 				/* if it's a directory, recurse */
 				if (S_ISDIR(sb.st_mode) && !S_ISLNK(sb.st_mode)) {
-					head = traverse_files(head, fullpath, opts);
+					head = traverse_files(head, fullpath, opts, tarfile);
 				} else {
 					/* else print path if verbose */
 					header = create_header(fullpath, &sb, opts);
@@ -272,36 +272,4 @@ void pop_dev(Header *header, struct stat *sb) {
 	}
 	return;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

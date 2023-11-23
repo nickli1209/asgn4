@@ -4,7 +4,7 @@ int main(int argc, char *argv[]) {
 	Node *head = NULL;
 	Options *opts;
 	char *path;
-	int pathlen, i;
+	int pathlen, i, tarfile;
 
 	/* check for at least 3 args */
 	if (argc < 3) {
@@ -25,6 +25,10 @@ int main(int argc, char *argv[]) {
 			perror("malloc on path");
 			exit(EXIT_FAILURE);	
 		}
+		if ((tarfile = open(argv[2], O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IRGRP | S_IROTH)) == -1) {
+			perror("open");
+			exit(EXIT_FAILURE);
+		}
 		/* traverse every file in path argument */
 		for (i = 3; i < argc; i++) {
 			if (strlen(argv[i]) > MAX_PATH) {
@@ -33,7 +37,7 @@ int main(int argc, char *argv[]) {
 			}
 			pathlen = strlen(argv[i]) + 1;
 			memmove(path, argv[i], pathlen);
-			head = traverse_files(head, path, opts);
+			head = traverse_files(head, path, opts, tarfile);
 		}	
 	}	
 
