@@ -125,6 +125,7 @@ Header *create_header(char *name, struct stat *sb, Options *opts) {
 	strcpy(header->magic, "ustar"); /* magic */
 	strncpy(header->version, "00", 2); /* version (NOT NULL terminated) */
 	pop_symnames(header, sb); /* uname and gname */
+	pop_dev(header, sb);
 	pop_chksum(header); /* checksum */
 	return header;
 }
@@ -243,6 +244,20 @@ void pop_chksum(Header *header){
 	}
 	/*writes the octal value of total bytes*/
 	int_to_octal(header->chksum,sizeof(header->chksum),checksum);
+	return;
+}
+
+void pop_dev(Header *header, struct stat *sb) {
+	unsigned int dev_maj;
+	unsigned int dev_min;
+	if (S_ISCHR(sb->st_mode) || S_ISBLK(sb->st_mode)) {
+		dev_maj = major(sb->st_mode);
+		dev_min = minor(sb->st_mode);
+
+		int_to_octal(header->devmajor, sizeof(header->devmajor), dev_maj);
+		int_to_octal(header->devminor, sizeof(header->devminor), dev_min);
+	}
+	return;
 }
 
 

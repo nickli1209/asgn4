@@ -67,8 +67,9 @@ void pop_IDs(Header *header, struct stat *sb, Options *opts);
 void pop_typeflag(Header *header, struct stat *sb);
 void pop_linkname(Header *header, char *path, struct stat *sb);
 void pop_symnames(Header *header, struct stat *sb);
-
 void pop_chksum(Header *header);
+void pop_dev(Header *header, struct stat *sb);
+
 /* helpers */
 void int_to_octal(char * dest, int size, unsigned long val);
 int insert_special_int(char *where, size_t size, int32_t val);
