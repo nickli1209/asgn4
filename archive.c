@@ -128,6 +128,7 @@ Header *create_header(char *name, struct stat *sb, Options *opts) {
 	strcpy(header->magic, "ustar"); /* magic */
 	strncpy(header->version, "00", 2); /* version (NOT NULL terminated) */
 	pop_symnames(header, sb); /* uname and gname */
+	pop_chksum(header);
 
 
 
@@ -236,6 +237,19 @@ void pop_symnames(Header *header, struct stat *sb) {
 	strncpy(header->uname, pw->pw_name, sizeof(header->uname));
 	strncpy(header->gname, grp->gr_name, sizeof(header->gname));
 	return;
+}
+
+void pop_chksum(Header *header){
+	/*sets chksum to spaces before hand for calculations*/
+	memset(header->chksum,' ',sizeof(header->chksum));
+	unsigned char *bytes= (unsigned char*) header;
+	unsigned long checksum=0;
+	int i;
+	for(size_t i=0;i<sizeof(Header);i++){
+		checksum+=bytes[i];
+	}
+	/*writes the octal value of total bytes*/
+	int_to_octal(header->chksum,sizeof(header->chksum),checksum);
 }
 
 
