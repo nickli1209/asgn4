@@ -125,11 +125,8 @@ Header *create_header(char *name, struct stat *sb, Options *opts) {
 	strcpy(header->magic, "ustar"); /* magic */
 	strncpy(header->version, "00", 2); /* version (NOT NULL terminated) */
 	pop_symnames(header, sb); /* uname and gname */
-
+	pop_dev(header, sb);
 	pop_chksum(header); /* checksum */
-
-
-
 	return header;
 }
 
@@ -203,17 +200,18 @@ void pop_typeflag(Header *header, struct stat *sb) {
 }
 
 void pop_linkname(Header *header, char *path, struct stat *sb) {
-	char *buf[MAX_PATH]; /* arbitrary length over 100 to ensure pathlen isn't too long */
+	char buf[MAX_PATH]; /* arbitrary length over 100 to ensure pathlen isn't too long */
 	if (S_ISLNK(sb->st_mode)) {
 		if (readlink(path, buf, MAX_PATH) == -1) {
 			perror("readlink");
 			exit(EXIT_FAILURE);
 		}
-		// if (strlen(buf) > 100) {
-		// 	fprintf(stderr, "")
-		// } 
-	} else {
-		header->linkname[0] = '\0';
+		if (strlen(buf) > 100) {
+			fprintf(stderr, "linkname too long");
+			exit(EXIT_FAILURE);
+		} else {
+			strncpy(header->chksum, buf, MAX_NAME);
+		}
 	}
 }
 
@@ -244,9 +242,22 @@ void pop_chksum(Header *header){
 	for(i=0;i<sizeof(Header);i++){
 		checksum += bytes[i] ? 1 : 0;
 	}
-	printf("%d\n", (unsigned long) checksum);
 	/*writes the octal value of total bytes*/
 	int_to_octal(header->chksum,sizeof(header->chksum),checksum);
+	return;
+}
+
+void pop_dev(Header *header, struct stat *sb) {
+	unsigned int dev_maj;
+	unsigned int dev_min;
+	if (S_ISCHR(sb->st_mode) || S_ISBLK(sb->st_mode)) {
+		dev_maj = major(sb->st_mode);
+		dev_min = minor(sb->st_mode);
+
+		int_to_octal(header->devmajor, sizeof(header->devmajor), dev_maj);
+		int_to_octal(header->devminor, sizeof(header->devminor), dev_min);
+	}
+	return;
 }
 
 
