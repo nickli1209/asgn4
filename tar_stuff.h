@@ -59,7 +59,7 @@ struct Node{
 };
 
 Options *check_options(char *options);
-Node *traverse_files(Node *head, char *path, Options *opts, int tarfile);
+void traverse_files(char *path, Options *opts, int tarfile);
 Node *insert_end(Node *head, Header *header);
 
 /* header stuff */

@@ -3,7 +3,7 @@
 /* takes head of linked list, path string, and options,
  * does a preorder DFS of file tree. returns head of linked
  * list of Header structs */
-Node *traverse_files(Node *head, char *path, Options *opts, int tarfile) {
+void traverse_files(char *path, Options *opts, int tarfile) {
 	DIR *dir; /* current directory */
 	struct dirent *ent; /* entries inside dir */
 	struct stat sb; /* stat buffer for entries */
@@ -18,7 +18,6 @@ Node *traverse_files(Node *head, char *path, Options *opts, int tarfile) {
 	
 	header = create_header(path, &sb, opts);
 	write_header(header, path, tarfile);
-	//head = insert_end(head, header);
 
 	/* if verbose option on, print current directory path*/
 	if (opts->v) {
@@ -53,12 +52,11 @@ Node *traverse_files(Node *head, char *path, Options *opts, int tarfile) {
 
 				/* if it's a directory, recurse */
 				if (S_ISDIR(sb.st_mode) && !S_ISLNK(sb.st_mode)) {
-					head = traverse_files(head, fullpath, opts, tarfile);
+					traverse_files(fullpath, opts, tarfile);
 				} else {
 					/* else print path if verbose */
 					header = create_header(fullpath, &sb, opts);
 					write_header(header, fullpath, tarfile);
-					//head = insert_end(head, header);
 					if (opts->v) {
 						printf("%s\n", fullpath);
 					}
@@ -66,36 +64,7 @@ Node *traverse_files(Node *head, char *path, Options *opts, int tarfile) {
 			}
 	}
 	closedir(dir);
-	return head;
-}
-
-/* takes head Node and Header structs, creates Node out 
- * of Header and inserts it to end of linked list. returns head*/
-Node *insert_end(Node *head, Header *header) {
-  Node *new; /* Node being inserted */
-	Node *cur; /* used for traversing to end */
-
-	/* malloc space for new Node */
-	if ((new = malloc(sizeof(Node))) == NULL) {
-		perror("malloc");
-		exit(EXIT_FAILURE);
-	}
-	/* populate new Node with Header's info */
-  new->header = header;
-  new->next = NULL;
-
-	/* if list is empty, assign head to new Node */
-  if (head == NULL) {
-    head = new;
-  } else {
-		/* else iterate from head to end, set end to new */
-    cur = head;
-    while (cur->next != NULL) {
-      cur = cur->next;
-    }
-    cur->next = new;
-  }
-  return head;
+	return;
 }
 
 /* TODO */
