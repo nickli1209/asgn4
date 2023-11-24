@@ -71,9 +71,10 @@ void pop_linkname(Header *header, char *path, struct stat *sb);
 void pop_symnames(Header *header, struct stat *sb);
 void pop_chksum(Header *header);
 void pop_dev(Header *header, struct stat *sb);
-
-/* writing header stuff */
 void write_header(Header *header, char *path, int fd);
+
+/* table of contents stuff */
+void contents(int tarfile);
 
 /* helpers */
 void int_to_octal(char * dest, int size, unsigned long val);

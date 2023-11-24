@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
 	
 	/* store options in Options struct  */
 	opts = check_options(argv[1]);
-	
+
 	/* create */
 	if (opts->c) {
 		if (argc < 4) {
@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
 			exit(EXIT_FAILURE);	
 		}
 		if ((tarfile = open(argv[2], O_RDWR | O_CREAT | O_TRUNC, 
-		S_IRWXU | S_IRWXG)) == -1) {
+			S_IRWXU | S_IRWXG)) == -1) {
 			perror("open");
 			exit(EXIT_FAILURE);
 		}
@@ -42,5 +42,12 @@ int main(int argc, char *argv[]) {
 		}	
 	}	
 
+	if (opts->t) {
+		if ((tarfile = open(argv[2], O_RDONLY)) == -1) {
+			perror("open");
+			exit(EXIT_FAILURE);
+		}
+		contents(tarfile);
+	}
 	return 0;
 }
