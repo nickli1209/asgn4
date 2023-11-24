@@ -24,6 +24,7 @@
 #define MAX_PATH 256
 #define MAX_NAME 100
 #define MAX_PREFIX 155
+#define MAX_SIZE 12
 
 #define BLOCK_SIZE 512
 
@@ -72,6 +73,7 @@ void pop_symnames(Header *header, struct stat *sb);
 void pop_chksum(Header *header);
 void pop_dev(Header *header, struct stat *sb);
 void write_header(Header *header, char *path, int fd);
+void write_end(int tarfile);
 
 /* table of contents stuff */
 void contents(int tarfile);

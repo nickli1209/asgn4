@@ -22,4 +22,4 @@ tar_stuff.o: tar_stuff.c tar_stuff.h
 	$(CC) $(CFLAGS) -c -o tar_stuff.o tar_stuff.c
 
 clean:
-	rm -f *.o mytar
+	rm -f *.o *.tar mytar

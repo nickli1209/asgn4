@@ -67,7 +67,7 @@ void traverse_files(char *path, Options *opts, int tarfile) {
 	return;
 }
 
-/* TODO */
+
 Header *create_header(char *name, struct stat *sb, Options *opts) {
 	Header *header;
 	if ((header = malloc(sizeof(Header))) == NULL) {
@@ -270,5 +270,14 @@ void write_header(Header *header, char *path, int tarfile) {
 	}
 	close(file);
 	return;
+}
+
+void write_end(int tarfile) {
+	char buf[BLOCK_SIZE * 2];
+	memset(buf, '\0', BLOCK_SIZE * 2);
+	if (write(tarfile, buf, BLOCK_SIZE * 2) == -1) {
+		perror("write");
+		exit(EXIT_FAILURE);
+	}
 }
 

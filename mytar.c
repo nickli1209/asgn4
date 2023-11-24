@@ -38,6 +38,8 @@ int main(int argc, char *argv[]) {
 			pathlen = strlen(argv[i]) + 1;
 			memmove(path, argv[i], pathlen);
 			traverse_files(path, opts, tarfile);
+			write_end(tarfile);
+			close(tarfile);
 		}	
 	}	
 
