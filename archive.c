@@ -252,23 +252,25 @@ void write_header(Header *header, char *path, int tarfile) {
 		perror("write");
 		exit(EXIT_FAILURE);
 	}
-	if ((file = open(path, O_RDONLY)) == -1) {
-		perror("open");
-		exit(EXIT_FAILURE);
-	}
-
-	while((bytes_read = read(file, buf, BLOCK_SIZE)) > 0) {
-		if (bytes_read < BLOCK_SIZE) {
-			for (i = bytes_read - 1; i < BLOCK_SIZE; i++) {
-				buf[i] = '\0';
-			}
-		}
-		if ((bytes_wrote = write(tarfile, buf, BLOCK_SIZE)) == -1) {
-			perror("write");
+	if(header->typeflag =='0'){
+		if ((file = open(path, O_RDONLY)) == -1) {
+			perror("open");
 			exit(EXIT_FAILURE);
-		} 
+		}	
+	
+		while((bytes_read = read(file, buf, BLOCK_SIZE)) > 0) {
+			if (bytes_read < BLOCK_SIZE) {
+				for (i = bytes_read - 1; i < BLOCK_SIZE; i++) {
+					buf[i] = '\0';
+				}
+			}
+			if ((bytes_wrote = write(tarfile, buf, BLOCK_SIZE)) == -1) {
+				perror("write");
+				exit(EXIT_FAILURE);
+			} 
+		}
+		close(file);
 	}
-	close(file);
 	return;
 }
 
