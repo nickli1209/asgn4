@@ -16,13 +16,13 @@ void traverse_files(char *path, Options *opts, int tarfile) {
 		exit(EXIT_FAILURE); /* prob shouldn't exit here */
 	}
 	
-	header = create_header(path, &sb, opts);
-	write_header(header, path, tarfile);
-
+	snprintf(fullpath, MAX_PATH, "%s/", path);
 	/* if verbose option on, print current directory path*/
-	if (opts->v) {
-		printf("%s/\n", path);
+	if (opts->v) {	
+		printf("%s\n", fullpath);
 	}
+	header = create_header(fullpath, &sb, opts);
+	write_header(header, fullpath, tarfile);
 
 	/* open current directory */
 	if ((dir = opendir(path)) == NULL) {
@@ -160,14 +160,14 @@ void pop_IDs(Header *header, struct stat *sb, Options *opts) {
  * typeflag field */
 void pop_typeflag(Header *header, struct stat *sb) {
 	if (S_ISREG(sb->st_mode)) {
-		header->typeflag = '0'; /* if regular, set to '0' */
+		header->typeflag[0] = '0'; /* if regular, set to '0' */
 	} else if (S_ISLNK(sb->st_mode)) {
-		header->typeflag = '2'; /* if symlink, set to '2' */
+		header->typeflag[0] = '2'; /* if symlink, set to '2' */
 	} else if (S_ISDIR(sb->st_mode)) {
-		header->typeflag = '5'; /* if directory, set to '5' */
+		header->typeflag[0] = '5'; /* if directory, set to '5' */
 	} else {
 		/* else regular file (alternate), so set to NULL */
-		header->typeflag = '\0'; 
+		header->typeflag[0] = '\0'; 
 	}
 	return;
 }
