@@ -252,7 +252,7 @@ void write_header(Header *header, char *path, int tarfile) {
 		perror("write");
 		exit(EXIT_FAILURE);
 	}
-	if(header->typeflag =='0'){
+	if(header->typeflag[0] == '0'){
 		if ((file = open(path, O_RDONLY)) == -1) {
 			perror("open");
 			exit(EXIT_FAILURE);

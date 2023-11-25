@@ -12,6 +12,7 @@
 #include <pwd.h>
 #include <grp.h>
 #include <fcntl.h>
+#include <time.h>
 
 #define ON 1
 
@@ -100,7 +101,8 @@ void write_header(Header *header, char *path, int fd);
 void write_end(int tarfile);
 
 /* table of contents stuff */
-void contents(int tarfile);
+void contents(int tarfile, Options *opts);
+void print_perms(char *mode);
 
 /* helpers */
 void int_to_octal(char * dest, int size, unsigned long val);

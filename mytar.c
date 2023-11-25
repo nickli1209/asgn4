@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
 			perror("open");
 			exit(EXIT_FAILURE);
 		}
-		contents(tarfile);
+		contents(tarfile, opts);
 		close(tarfile);
 	}
 	return 0;

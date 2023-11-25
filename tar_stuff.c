@@ -54,6 +54,8 @@ void int_to_octal(char *dest,int size, unsigned long val){
 	snprintf(dest, size, "%0*lo", size-1, val);
 }
 
+
+
 /* For interoperability with GNU tar. GNU seems to
 * set the high–order bit of the first byte, then
 * treat the rest of the field as a binary integer

@@ -1,14 +1,9 @@
 #include "tar_stuff.h"
 
-// when verbose is not set, read each header section at name_offset and print the file name
-// when verbose is set, read each header at name_offset for name, mode_offset for permissions and convert to
-// drwx---rw- format, and so on for the rquired feilds, then pad with spaces to the proper length of each feild and print
-//
-
 /* TODO make this a function in tar_stuff.c - useful for reading headers
  * should read header one at a time and return it. This might be were a linked 
  * list is useful */
-void contents(int tarfile) {
+void contents(int tarfile, Options *opts) {
   uint8_t buf[BLOCK_SIZE];
   char fullpath[MAX_PATH];
   unsigned long size;
@@ -18,7 +13,7 @@ void contents(int tarfile) {
 
   memset(check, '\0', BLOCK_SIZE);
 
-  while (read(tarfile, buf, BLOCK_SIZE) != -1) {
+  while (read(tarfile, buf, BLOCK_SIZE) > 0) {
     if (memcmp(buf, check, BLOCK_SIZE) == 0) {
       break;
     }
@@ -33,7 +28,6 @@ void contents(int tarfile) {
     memcpy(header->uid, &buf[UID_OFFSET], MAX_ID);
     memcpy(header->gid, &buf[GID_OFFSET], MAX_ID);
     memcpy(header->size, &buf[SIZE_OFFSET], MAX_SIZE); /* copy size to string */
-    size = strtoul(header->size, NULL, 8); /* convert it to an integer */
     memcpy(header->mtime, &buf[MTIME_OFFSET], MAX_MTIME);
     memcpy(header->chksum, &buf[CHKSUM_OFFSET], MAX_CHKSUM);
     memcpy(header->typeflag, &buf[TYPEFLAG_OFFSET], MAX_TYPEFLAG);
@@ -45,18 +39,62 @@ void contents(int tarfile) {
     memcpy(header->devmajor, &buf[DEVMAJ_OFFSET], MAX_DEVMAJ);
     memcpy(header->devminor, &buf[DEVMIN_OFFSET], MAX_DEVMIN);
     memcpy(header->prefix, &buf[PREFIX_OFFSET], MAX_PREFIX);
-
-    if (header->prefix[0] != '\0') {
-      snprintf(fullpath, MAX_PATH, "%s/%s", header->prefix, header->name);
-    } else {
-      strncpy(fullpath, header->name, MAX_NAME);
+    size = strtoul(header->size, NULL, 8); /* convert size to an integer */
+    
+    if (opts->v) {
+      print_perms(header->mode);
+      printf(" %s/%s        ", header->uname, header->gname);
+      printf("%8d ", (int) size);
+      time_t time = (time_t) strtoul(header->mtime, NULL, 8);
+      struct tm *timeinfo = localtime(&time);
+      char formatted_time[17];
+      strftime(formatted_time, sizeof(formatted_time), "%Y-%m-%d %H:%M", timeinfo);
+      printf("%s ", formatted_time);
     }
-    printf("%s\n", fullpath);
-
+    
+    if (header->linkname[0] != '\0') {
+      printf("%s\n", header->linkname);
+    } else {
+      if (header->prefix[0] != '\0') {
+        snprintf(fullpath, MAX_PATH, "%s/%s", header->prefix, header->name);
+      } else {
+        strncpy(fullpath, header->name, MAX_NAME);
+      }
+      printf("%s\n", fullpath);
+    }
     offset = size ? ((size / 512) + 1) : 0; /* calculate block to read */
     lseek(tarfile, offset * 512, SEEK_CUR); /* seek to next header block */
   }
 
   close(tarfile);
   return;
+}
+
+void print_perms(char *mode_octal) {
+  char perms[11];
+  unsigned long mode; 
+
+  mode = strtoul(mode_octal, NULL, 8);
+  if (S_ISDIR(mode)) {
+    perms[0] = 'd';
+  } else if (S_ISLNK(mode)) {
+    perms[0] = 'l';
+  } else {
+    perms[0] = '-';
+  }
+  perms[1] = (mode & S_IRUSR) ? 'r' : '-';
+  perms[2] = (mode & S_IWUSR) ? 'w' : '-';
+  perms[3] = (mode & S_IXUSR) ? 'x' : '-';
+  perms[4] = (mode & S_IRGRP) ? 'r' : '-';
+  perms[5] = (mode & S_IWGRP) ? 'w' : '-';
+  perms[6] = (mode & S_IXGRP) ? 'x' : '-';
+  perms[7] = (mode & S_IROTH) ? 'r' : '-';
+  perms[8] = (mode & S_IWOTH) ? 'w' : '-';
+  perms[9] = (mode & S_IXOTH) ? 'x' : '-';
+  perms[10] = '\0';
+  printf("%s", perms);
+}
+
+void print_time(char *time) {
+
 }
