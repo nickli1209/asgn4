@@ -17,14 +17,38 @@
 
 #define NAME_OFFSET 0
 #define MODE_OFFSET 100
-#define GNAME_OFFSET 297
+#define UID_OFFSET 108
+#define GID_OFFSET 116
 #define SIZE_OFFSET 124
 #define MTIME_OFFSET 136
+#define CHKSUM_OFFSET 148
+#define TYPEFLAG_OFFSET 156
+#define LINKNAME_OFFSET 157
+#define MAGIC_OFFSET 257
+#define VERSION_OFFSET 263
+#define UNAME_OFFSET 265
+#define GNAME_OFFSET 297
+#define DEVMAJ_OFFSET 329
+#define DEVMIN_OFFSET 337
+#define PREFIX_OFFSET 345
 
 #define MAX_PATH 256
 #define MAX_NAME 100
-#define MAX_PREFIX 155
+#define MAX_MODE 8
+#define MAX_ID 8
 #define MAX_SIZE 12
+#define MAX_MTIME 12
+#define MAX_CHKSUM 8
+#define MAX_TYPEFLAG 1
+#define MAX_LINKNAME 100
+#define MAX_MAGIC 6
+#define MAX_VERSION 2
+#define MAX_UNAME 32
+#define MAX_GNAME 32
+#define MAX_DEVMAJ 8
+#define MAX_DEVMIN 8
+#define MAX_PREFIX 155
+
 
 #define BLOCK_SIZE 512
 
@@ -40,7 +64,7 @@ typedef struct {
 	char size[12];//
 	char mtime[12];//
 	char chksum[8];
-	char typeflag;//
+	char typeflag[1];//
 	char linkname[100];//
 	char magic[6];  
 	char version[2];
