@@ -5,8 +5,12 @@
 // drwx---rw- format, and so on for the rquired feilds, then pad with spaces to the proper length of each feild and print
 //
 
+/* TODO make this a function in tar_stuff.c - useful for reading headers
+ * should read header one at a time and return it. This might be were a linked 
+ * list is useful */
 void contents(int tarfile) {
   uint8_t buf[BLOCK_SIZE];
+  char fullpath[MAX_PATH];
   unsigned long size;
   int offset;
   Header *header;
@@ -14,11 +18,9 @@ void contents(int tarfile) {
 
   memset(check, '\0', BLOCK_SIZE);
 
-  do {
-    /* read a block of data */
-    if (read(tarfile, buf, BLOCK_SIZE) == -1) {
-      perror("read on block");
-      exit(EXIT_FAILURE);
+  while (read(tarfile, buf, BLOCK_SIZE) != -1) {
+    if (memcmp(buf, check, BLOCK_SIZE) == 0) {
+      break;
     }
     /* malloc space for Header struct */
     if ((header = malloc(sizeof(Header))) == NULL) {
@@ -27,8 +29,6 @@ void contents(int tarfile) {
     }
 
     memcpy(header->name, &buf[NAME_OFFSET], MAX_NAME); /* read name into */
-    printf("%s\n", header->name); /* print name */
-
     memcpy(header->mode, &buf[MODE_OFFSET], MAX_MODE);
     memcpy(header->uid, &buf[UID_OFFSET], MAX_ID);
     memcpy(header->gid, &buf[GID_OFFSET], MAX_ID);
@@ -46,9 +46,16 @@ void contents(int tarfile) {
     memcpy(header->devminor, &buf[DEVMIN_OFFSET], MAX_DEVMIN);
     memcpy(header->prefix, &buf[PREFIX_OFFSET], MAX_PREFIX);
 
+    if (header->prefix[0] != '\0') {
+      snprintf(fullpath, MAX_PATH, "%s/%s", header->prefix, header->name);
+    } else {
+      strncpy(fullpath, header->name, MAX_NAME);
+    }
+    printf("%s\n", fullpath);
+
     offset = size ? ((size / 512) + 1) : 0; /* calculate block to read */
     lseek(tarfile, offset * 512, SEEK_CUR); /* seek to next header block */
-  } while (memcmp(buf, check, BLOCK_SIZE) != 0);
+  }
 
   close(tarfile);
   return;
