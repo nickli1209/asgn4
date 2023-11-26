@@ -101,7 +101,7 @@ void write_header(Header *header, char *path, int fd);
 void write_end(int tarfile);
 
 /* table of contents stuff */
-void contents(int tarfile, Options *opts);
+void contents(int tarfile, Options *opts,char ** pathList);
 void print_perms(char *mode);
 Header *readHeader(uint8_t *buf);
 /* helpers */
