@@ -1,6 +1,6 @@
 #include "tar_stuff.h"
 
-void contents(int tarfile, Options *opts) {
+void contents(int tarfile, Options *opts,char ** pathList) {
  	uint8_t buf[BLOCK_SIZE];
  	char fullpath[MAX_PATH];
   	unsigned long size;
@@ -9,6 +9,7 @@ void contents(int tarfile, Options *opts) {
   	uint8_t check[BLOCK_SIZE];
 
   	memset(check, '\0', BLOCK_SIZE);
+	
 	while (read(tarfile, buf, BLOCK_SIZE) > 0) {
     		if (memcmp(buf, check, BLOCK_SIZE) == 0) {
 			if(memcmp(buf, check, BLOCK_SIZE) == 0) {
@@ -17,7 +18,30 @@ void contents(int tarfile, Options *opts) {
     		}
     		/* fills header with header data from buf*/
 		header = readHeader(buf);
-   		size = strtoul(header->size,NULL,8); 
+   		size = strtoul(header->size,NULL,8);
+		if (header->prefix[0] != '\0') {
+                        snprintf(fullpath, MAX_PATH, "%s/%s", header->prefix, header->name);
+                } else {
+                        strncpy(fullpath, header->name, MAX_NAME);
+                }
+		if(pathList!=NULL){
+			int i=0;
+			int match=0;
+			for(i=0;pathList[i]!=NULL;i++){
+				int pathLen=strlen(pathList[i]);
+				if (strncmp(fullpath,pathList[i],pathLen)==0 ){
+					match=1;
+					break;
+				}			
+			}
+		} 
+		if(!match){
+			offset = size ? ((size / 512) + 1) : 0; /* calculate block to read */
+                	lseek(tarfile, offset * 512, SEEK_CUR); /* seek to next header block */
+                	free(header);
+			continue;	
+		}
+		
     		if (opts->v) {
       			print_perms(header->mode);
       			printf(" %s/%s        ", header->uname, header->gname);
@@ -32,15 +56,11 @@ void contents(int tarfile, Options *opts) {
     		if (header->linkname[0] != '\0') {
       			printf("%s\n", header->linkname);
     		} else {
-      		if (header->prefix[0] != '\0') {
-        		snprintf(fullpath, MAX_PATH, "%s/%s", header->prefix, header->name);
-      		} else {
-        		strncpy(fullpath, header->name, MAX_NAME);
-      		}
       			printf("%s\n", fullpath);
     		}
     		offset = size ? ((size / 512) + 1) : 0; /* calculate block to read */
     		lseek(tarfile, offset * 512, SEEK_CUR); /* seek to next header block */
+		free(header);
   	}
 
   	close(tarfile);
