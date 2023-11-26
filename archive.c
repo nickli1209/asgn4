@@ -29,6 +29,7 @@ void traverse_files(char *path, Options *opts, int tarfile) {
      * info, then write it to the tarfile */
 	header = create_header(fullpath, &sb, opts);
 	write_header(header, fullpath, tarfile);
+    free(header); /* free header */
 
 	/* open current directory */
 	if ((dir = opendir(path)) == NULL) {
@@ -67,6 +68,7 @@ void traverse_files(char *path, Options *opts, int tarfile) {
                      * file info, then write it to the tarfile */
                     header = create_header(fullpath, &sb, opts);
 					write_header(header, fullpath, tarfile);
+                    free(header);
                     /* if verbose option on, print path */
 					if (opts->v) {
 						printf("%s\n", fullpath);

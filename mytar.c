@@ -1,8 +1,8 @@
 #include "tar_stuff.h"
 
 int main(int argc, char *argv[]) {
-	Options *opts;
-	char *path;
+	Options *opts = NULL;
+	char *path = NULL;
 	int pathlen, i, tarfile;
 
 	/* check for at least 3 args */
@@ -13,7 +13,12 @@ int main(int argc, char *argv[]) {
 	}
 	
 	/* store options in Options struct  */
-	opts = check_options(argv[1]);
+    if ((opts = malloc(sizeof(Options))) == NULL) {
+        perror("malloc on Options");
+        exit(EXIT_FAILURE);
+    }
+    
+	check_options(argv[1], opts);
 
 	/* create */
 	if (opts->c) {
@@ -51,6 +56,7 @@ int main(int argc, char *argv[]) {
 			traverse_files(path, opts, tarfile);
 		}
 		write_end(tarfile); /* write last 2 blocks of NULLS */
+        free(path);
         close(tarfile); /* close tarfile */     
 	}	
 
@@ -62,7 +68,7 @@ int main(int argc, char *argv[]) {
         /* if there are optional paths */
         if (argc > 3) {
             num_paths = argc - 3;
-            if ((paths = malloc(num_paths * sizeof(char *))) == NULL) {
+            if ((paths = malloc(num_paths + 1 * sizeof(char *))) == NULL) {
                 perror("failed to malloc paths");
                 exit(EXIT_FAILURE);
             }
@@ -71,6 +77,7 @@ int main(int argc, char *argv[]) {
                 paths[i - 3] = argv[i];
                 printf("%s\n", paths[i-3]);
             }
+            paths[++i] = NULL;
         }
         
         /* open tarfile, save its file descriptor */
@@ -84,5 +91,6 @@ int main(int argc, char *argv[]) {
         free(paths); /* free paths */
 		close(tarfile); /* close tarfile */
 	}
+    free(opts);
 	return 0;
 }

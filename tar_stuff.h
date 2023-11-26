@@ -84,7 +84,7 @@ struct Node{
 	struct Node *next;
 };
 
-Options *check_options(char *options);
+void check_options(char *options, Options *opts);
 void traverse_files(char *path, Options *opts, int tarfile);
 Node *insert_end(Node *head, Header *header);
 

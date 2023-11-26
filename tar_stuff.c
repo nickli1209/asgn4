@@ -2,9 +2,16 @@
 
 /* takes string of options, iterates through options and turns
  * on corresponding flags. returns void */
-Options *check_options(char *options) {
-	Options *opts = malloc(sizeof(Options));
+void check_options(char *options, Options *opts) {
 	int i;
+    
+    opts->c = 0;
+    opts->t = 0;
+    opts->x = 0;
+    opts->v = 0;
+    opts->f = 0;
+    opts->S = 0;
+
 	/* pass every character in options string through switch case */
 	for(i = 0; options[i] != '\0'; i++) {
 		/* if character matches an option, turn on corresponding flag,
@@ -48,7 +55,7 @@ Options *check_options(char *options) {
                 "options must contain one and only one of: 'c', 't', 'x'\n");
 		exit(EXIT_FAILURE);
 	}
-    return opts;
+    return;
 }
 
 /* function to store octal string of val into dest */
