@@ -147,7 +147,7 @@ void pop_name(Header *header, char *fullpath) {
         strncpy(header->prefix, fullpath,
                 index-1); /* index-1 so '/' isn't stored */
     }
-    return 0;
+    return;
 }
 
 /* takes Header struct, stat buffer, and Options struct, 
