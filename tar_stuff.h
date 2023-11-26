@@ -103,7 +103,7 @@ void write_end(int tarfile);
 /* table of contents stuff */
 void contents(int tarfile, Options *opts);
 void print_perms(char *mode);
-
+Header *readHeader(uint8_t *buf);
 /* helpers */
 void int_to_octal(char * dest, int size, unsigned long val);
 int insert_special_int(char *where, size_t size, int32_t val);
