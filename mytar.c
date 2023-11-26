@@ -7,7 +7,8 @@ int main(int argc, char *argv[]) {
 
 	/* check for at least 3 args */
 	if (argc < 3) {
-		fprintf(stderr, "usage: mytar [ctxvS]f tarfile [ path [ ... ] ]\n");
+		fprintf(stderr,
+                "usage: mytar [ctxvS]f tarfile [ path [ ... ] ]\n");
 		exit(EXIT_FAILURE);
 	}
 	
@@ -18,7 +19,8 @@ int main(int argc, char *argv[]) {
 	if (opts->c) {
         /* if there aren't enough args */
 		if (argc < 4) {
-			fprintf(stderr, "usage: mytar [txvS]cf tarfile [ path [ ... ] ]\n");
+			fprintf(stderr,
+                    "usage: mytar [txvS]cf tarfile [ path [ ... ] ]\n");
 			exit(EXIT_FAILURE);
 		}
         
@@ -39,7 +41,8 @@ int main(int argc, char *argv[]) {
 		for (i = 3; i < argc; i++) {
             /* if initial path is too big, skip to next one */
 			if (strlen(argv[i]) > MAX_PATH) {
-				printf("pathname over 256 characters: %s\n", argv[i]);
+				printf("pathname over 256 characters: %s\n",
+                        argv[i]);
 				continue;
 			}
             /* save path and begin write with it */
