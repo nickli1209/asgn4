@@ -54,16 +54,16 @@ void traverse_files(char *path, Options *opts, int tarfile) {
 
 				/* store entry info into sb */
 				if (lstat(fullpath, &sb) == -1) {
-					perror("lstat on file (traverse_files)");
+                    perror("lstat on file (traverse_files)");
 					closedir(dir);
 					exit(EXIT_FAILURE);
 				}
 
-				/* if it's a directory and not a symlink, recurse */
+                /* if it's a directory and not a symlink, recurse */
                 if (S_ISDIR(sb.st_mode) && !S_ISLNK(sb.st_mode)) {
 					traverse_files(fullpath, opts, tarfile);
 				} else {
-					/* else create and populate Header struct with
+                    /* else create and populate Header struct with
                      * file info, then write it to the tarfile */
                     header = create_header(fullpath, &sb, opts);
 					write_header(header, fullpath, tarfile);
