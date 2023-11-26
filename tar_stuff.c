@@ -29,7 +29,8 @@ Options *check_options(char *options) {
 				opts->S = ON;
 				break;
 			default:
-				fprintf(stderr, "not a valid option: %c\n", options[i]);
+				fprintf(stderr,
+                        "not a valid option: %c\n", options[i]);
 				exit(EXIT_FAILURE);
 		}
 	}
@@ -43,7 +44,8 @@ Options *check_options(char *options) {
 	/* if more than one of c, t, or x flags, or if
 	 * these flags not present, throw error */
 	if((opts->c + opts->t + opts->x != 1)) {
-		fprintf(stderr, "options must contain one and only one of: 'c', 't', 'x'\n");
+		fprintf(stderr,
+                "options must contain one and only one of: 'c', 't', 'x'\n");
 		exit(EXIT_FAILURE);
 	}
     return opts;
@@ -105,15 +107,19 @@ Header *readHeader(uint8_t *buf){
                         exit(EXIT_FAILURE);
                 }
 
-                memcpy(header->name, &buf[NAME_OFFSET], MAX_NAME); /* read name into */
+                memcpy(header->name,
+                        &buf[NAME_OFFSET], MAX_NAME); /* read name into */
                 memcpy(header->mode, &buf[MODE_OFFSET], MAX_MODE);
                 memcpy(header->uid, &buf[UID_OFFSET], MAX_ID);
                 memcpy(header->gid, &buf[GID_OFFSET], MAX_ID);
-                memcpy(header->size, &buf[SIZE_OFFSET], MAX_SIZE); /* copy size to string */
+                memcpy(header->size,
+                        &buf[SIZE_OFFSET], MAX_SIZE); /* copy size to string */
                 memcpy(header->mtime, &buf[MTIME_OFFSET], MAX_MTIME);
                 memcpy(header->chksum, &buf[CHKSUM_OFFSET], MAX_CHKSUM);
-                memcpy(header->typeflag, &buf[TYPEFLAG_OFFSET], MAX_TYPEFLAG);
-                memcpy(header->linkname, &buf[LINKNAME_OFFSET], MAX_LINKNAME);
+                memcpy(header->typeflag,
+                        &buf[TYPEFLAG_OFFSET], MAX_TYPEFLAG);
+                memcpy(header->linkname,
+                        &buf[LINKNAME_OFFSET], MAX_LINKNAME);
                 memcpy(header->magic, &buf[MAGIC_OFFSET], MAX_MAGIC);
                 memcpy(header->version, &buf[VERSION_OFFSET], MAX_VERSION);
                 memcpy(header->uname, &buf[UNAME_OFFSET], MAX_UNAME);
