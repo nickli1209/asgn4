@@ -1,8 +1,5 @@
 #include "tar_stuff.h"
 
-/* TODO make this a function in tar_stuff.c - useful for reading headers
- * should read header one at a time and return it. This might be were a linked 
- * list is useful */
 void contents(int tarfile, Options *opts) {
   uint8_t buf[BLOCK_SIZE];
   char fullpath[MAX_PATH];

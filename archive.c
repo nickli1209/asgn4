@@ -1,8 +1,9 @@
 #include "tar_stuff.h"
 
-/* takes head of linked list, path string, and options,
- * does a preorder DFS of file tree. returns head of linked
- * list of Header structs */
+/* takes string containing path, Options struct, and file 
+ * descriptor of file to be written to. does a preorder DFS
+ *  of file tree starting at path, writing file headers and 
+ *  contents to tarfile as they are encountered */
 void traverse_files(char *path, Options *opts, int tarfile) {
 	DIR *dir; /* current directory */
 	struct dirent *ent; /* entries inside dir */
@@ -12,22 +13,27 @@ void traverse_files(char *path, Options *opts, int tarfile) {
 
 	/* store entry info into sb */
 	if (lstat(path, &sb) == -1) {
-		perror("lstat");
-		exit(EXIT_FAILURE); /* prob shouldn't exit here */
+		perror("lstat on directory (traverse_files)");
+		exit(EXIT_FAILURE);
 	}
 	
+    /* format and store path in fullpath */
 	snprintf(fullpath, MAX_PATH, "%s/", path);
-	/* if verbose option on, print current directory path*/
+
+	/* if verbose option on, print it */
 	if (opts->v) {	
 		printf("%s\n", fullpath);
 	}
+
+    /* create and populate a Header struct with file 
+     * info, then write it to the tarfile */
 	header = create_header(fullpath, &sb, opts);
 	write_header(header, fullpath, tarfile);
 
 	/* open current directory */
 	if ((dir = opendir(path)) == NULL) {
-		perror("opendir");
-		exit(EXIT_FAILURE); /*prob don't wan't to exit here.*/
+		perror("opendir on file (traverse_files)");
+		exit(EXIT_FAILURE);
 	}
 	
 	/* iterate through current's entries */
@@ -38,51 +44,59 @@ void traverse_files(char *path, Options *opts, int tarfile) {
 				/* check to make sure path isn't too long
 				 * before creating it*/
                 if (strlen(path) + strlen(ent->d_name) > MAX_PATH) {
-                    fprintf(stderr, "pathname over 256 characters");
+                    fprintf(stderr, "pathname too long");
 				    exit(EXIT_FAILURE);
 				}
+
 				/* format new path, store in fullpath */
 				snprintf(fullpath, MAX_PATH, "%s/%s",
 					   	path, ent->d_name);
 
 				/* store entry info into sb */
 				if (lstat(fullpath, &sb) == -1) {
-					perror("lstat");
+					perror("lstat on file (traverse_files)");
 					closedir(dir);
 					exit(EXIT_FAILURE);
 				}
 
-				/* if it's a directory, recurse */
+				/* if it's a directory and not a symlink, recurse */
                 if (S_ISDIR(sb.st_mode) && !S_ISLNK(sb.st_mode)) {
 					traverse_files(fullpath, opts, tarfile);
 				} else {
-					/* else print path if verbose */
+					/* else create and populate Header struct with
+                     * file info, then write it to the tarfile */
                     header = create_header(fullpath, &sb, opts);
 					write_header(header, fullpath, tarfile);
+                    /* if verbose option on, print path */
 					if (opts->v) {
 						printf("%s\n", fullpath);
 					}
 				}
 			}
 	}
+    /* close directory */
 	closedir(dir);
 	return;
 }
 
-
+/* takes string containing path name, stat buffer, and Options struct.
+ * creates and populates a header struct with pathname and info in 
+ * stat buffer. returns the Header */
 Header *create_header(char *name, struct stat *sb, Options *opts) {
-	Header *header;
+	Header *header; /* header */
+
 	if ((header = malloc(sizeof(Header))) == NULL) {
-		perror("malloc");
+		perror("malloc Header struct (create_header)");
 		exit(EXIT_FAILURE);
 	}
 
-	/* helps w/ NULL terminating */
+	/* memset entire struct to NULL - this allows us to ignore the 
+     * optional NULL termination and padding */
 	memset(header, '\0', sizeof(Header));
 
 	pop_name(header, name); /* name */
     int_to_octal(header->mode, sizeof(header->mode),
-            sb->st_mode); /* mode */
+                sb->st_mode); /* mode */
 	pop_IDs(header, sb, opts); /* uid and gid */
 	/* size */
 	if (!S_ISLNK(sb->st_mode) && !S_ISDIR(sb->st_mode)) {
@@ -99,42 +113,45 @@ Header *create_header(char *name, struct stat *sb, Options *opts) {
 	pop_symnames(header, sb); /* uname and gname */
 	pop_dev(header, sb); /* devmajor, devminor */
 	pop_chksum(header); /* checksum */
-	return header;
+
+	return header; /* return populated header */
 }
 
-/* takes Header and pathname string, populates header
- *  name and prefix with pathname */
+/* takes Header struct and string containing pathname,
+ * partitions fullpath on a '/' char (if necessary) and
+ * populates name and prefix fields of header */
 void pop_name(Header *header, char *fullpath) {
   unsigned int index; /* current index, used if prefix is needed */
 
-	/* if the length is 100 chars or less, copy it to name
-	 * we can use strlen since NULL char is optional */
-  if (strlen(fullpath) <= MAX_NAME) {
-    strncpy(header->name, fullpath, strlen(fullpath));
-  } else {
+    /* if the length is 100 chars or less, copy it to name
+    * we can use strlen since NULL char is optional */
+    if (strlen(fullpath) <= MAX_NAME) {
+        strncpy(header->name, fullpath, strlen(fullpath));
+    } else {
 		/* else move back 100 chars, then move forward until
 		 * encountering a slash OR getting to end of string */
-    index = strlen(fullpath) - MAX_NAME - 1;
-    while (fullpath[index] != '/') {
-			/* if the end is reached, throw an error */
-      if (index >= strlen(fullpath)-1) {
-        fprintf(stderr, "pathname too long");
-        exit(EXIT_FAILURE);
-      }
-      index++;
-    }
-    index++;
+        index = strlen(fullpath) - MAX_NAME - 1;
+        while (fullpath[index] != '/') {
+			/* if the end is reached, throw an error
+             * but don't exit */
+            if (index >= strlen(fullpath)-1) {
+                fprintf(stderr, "can't partition %s", fullpath);
+                exit(EXIT_FAILURE);
+            }
+        index++;
+        }
+        index++;
 		/* use index to seperate which strings are copied to 
 		 * name and prefix strings */
-    strncpy(header->name, &fullpath[index], strlen(fullpath) - index);
-    strncpy(header->prefix, fullpath,
-            index-1); /* -1 since we don't need the slash */
-  }
-  return;
+        strncpy(header->name, &fullpath[index], strlen(fullpath) - index);
+        strncpy(header->prefix, fullpath,
+                index-1); /* index-1 so '/' isn't stored */
+    }
+    return 0;
 }
 
-/* takes header struct, stat buffer, and options struct, 
- * populates header with user/group IDs */
+/* takes Header struct, stat buffer, and Options struct, 
+ * populates header with user and group IDs */
 void pop_IDs(Header *header, struct stat *sb, Options *opts) {
 	if (sb->st_uid <= 07777777) {
 		/* if the st_uid can fit into 7 octal digits,
@@ -149,6 +166,7 @@ void pop_IDs(Header *header, struct stat *sb, Options *opts) {
                 "user ID does not fit in header: turn off S option\n");
 		exit(EXIT_FAILURE);
 	}
+
 	/* likewise for group IDs */
 	if (sb->st_gid <= 07777777) {
 		int_to_octal(header->gid, sizeof(header->gid), sb->st_gid);
@@ -162,8 +180,8 @@ void pop_IDs(Header *header, struct stat *sb, Options *opts) {
 	return;
 }
 
-/* takes header struct and stat buffer, populates 
- * typeflag field */
+/* takes Header struct and stat buffer, populates 
+ * typeflag field of header */
 void pop_typeflag(Header *header, struct stat *sb) {
 	if (S_ISREG(sb->st_mode)) {
 		header->typeflag[0] = '0'; /* if regular, set to '0' */
@@ -187,7 +205,7 @@ void pop_linkname(Header *header, char *path, struct stat *sb) {
 	if (S_ISLNK(sb->st_mode)) {
 		/* read link from path into buf, throw error on failure */
 		if (readlink(path, buf, MAX_PATH) == -1) {
-			perror("readlink");
+			perror("readlink (pop_linkname)");
 			exit(EXIT_FAILURE);
 		}
 		/* if strlen is greater than 100, can't fit into field */
@@ -208,12 +226,12 @@ void pop_symnames(Header *header, struct stat *sb) {
 	struct group *grp = getgrgid(sb->st_gid); /* contains group name */
 	/* if getpwuid failed, throw an error */
 	if (pw == NULL) {
-		perror("getpwuid");
+		perror("getpwuid (pop_symnames)");
 		exit(EXIT_FAILURE);
 	}
 	/* if getgrgid failed, throw an error */
 	if (grp == NULL) {
-		perror("getgrgid");
+		perror("getgrgid (pop_symnames)");
 		exit(EXIT_FAILURE);
 	}
 	/* write the strings to their corresponding fields */
@@ -224,7 +242,7 @@ void pop_symnames(Header *header, struct stat *sb) {
 
 /* takes header, populates checksum field */
 void pop_chksum(Header *header){
-	/*sets chksum to spaces before hand for calculations*/
+	/* sets chksum to spaces before making calculations*/
 	memset(header->chksum,' ',sizeof(header->chksum));
 	unsigned char *bytes = (unsigned char *) header;
 	unsigned long checksum=0;
@@ -255,15 +273,20 @@ void pop_dev(Header *header, struct stat *sb) {
 	return;
 }
 
+/* takes Header struct, string containing path, file descriptor 
+ * to tarfile, writes contents of header to tarfile */
 void write_header(Header *header, char *path, int tarfile) {
-	uint8_t buf[BLOCK_SIZE];
+	uint8_t buf[BLOCK_SIZE]; /* buffer of block */
 	int file, bytes_read, bytes_wrote, i;
 
+    /* write header block to tarfile */
 	if (write(tarfile, header, BLOCK_SIZE) == -1) {
 		perror("write");
 		exit(EXIT_FAILURE);
 	}
-	if(header->typeflag[0] == '0'){
+    /* if size is 0 (file is a regular or alternate file),
+     * write its contents in blocks of 512 bytes to the tarfile */
+	if(header->typeflag[0] == '0' || header->typeflag[0] == '\0'){
 		if ((file = open(path, O_RDONLY)) == -1) {
 			perror("open");
 			exit(EXIT_FAILURE);
@@ -285,6 +308,7 @@ void write_header(Header *header, char *path, int tarfile) {
 	return;
 }
 
+/* writes 2 blocks of NULL chars to end of tarfile */
 void write_end(int tarfile) {
 	char buf[BLOCK_SIZE * 2];
 	memset(buf, '\0', BLOCK_SIZE * 2);
