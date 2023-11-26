@@ -97,35 +97,35 @@ int insert_special_int(char *where, size_t size, int32_t val) {
 	}
 	return err;
 }
-/*fills and returns a header struct from a passed in header buffer
+/* fills and returns a header struct from a passed in header buffer
  * from a tarfile*/
 Header *readHeader(uint8_t *buf){
-                /* malloc space for Header struct */
-		Header *header;
-                if ((header = malloc(sizeof(Header))) == NULL) {
-                        perror("malloc on Header struct");
-                        exit(EXIT_FAILURE);
-                }
+    Header *header; /* header */
 
-                memcpy(header->name,
-                        &buf[NAME_OFFSET], MAX_NAME); /* read name into */
-                memcpy(header->mode, &buf[MODE_OFFSET], MAX_MODE);
-                memcpy(header->uid, &buf[UID_OFFSET], MAX_ID);
-                memcpy(header->gid, &buf[GID_OFFSET], MAX_ID);
-                memcpy(header->size,
-                        &buf[SIZE_OFFSET], MAX_SIZE); /* copy size to string */
-                memcpy(header->mtime, &buf[MTIME_OFFSET], MAX_MTIME);
-                memcpy(header->chksum, &buf[CHKSUM_OFFSET], MAX_CHKSUM);
-                memcpy(header->typeflag,
-                        &buf[TYPEFLAG_OFFSET], MAX_TYPEFLAG);
-                memcpy(header->linkname,
-                        &buf[LINKNAME_OFFSET], MAX_LINKNAME);
-                memcpy(header->magic, &buf[MAGIC_OFFSET], MAX_MAGIC);
-                memcpy(header->version, &buf[VERSION_OFFSET], MAX_VERSION);
-                memcpy(header->uname, &buf[UNAME_OFFSET], MAX_UNAME);
-                memcpy(header->gname, &buf[GNAME_OFFSET], MAX_GNAME);
-                memcpy(header->devmajor, &buf[DEVMAJ_OFFSET], MAX_DEVMAJ);
-                memcpy(header->devminor, &buf[DEVMIN_OFFSET], MAX_DEVMIN);
-                memcpy(header->prefix, &buf[PREFIX_OFFSET], MAX_PREFIX);
-                return header;
+    /* malloc space for Header struct */  
+    if ((header = malloc(sizeof(Header))) == NULL) {
+        perror("malloc on Header struct");
+        exit(EXIT_FAILURE);
+    }
+
+    memcpy(header->name, &buf[NAME_OFFSET], MAX_NAME); /* name */
+    memcpy(header->mode, &buf[MODE_OFFSET], MAX_MODE); /* mode */
+    memcpy(header->uid, &buf[UID_OFFSET], MAX_ID); /* uid */
+    memcpy(header->gid, &buf[GID_OFFSET], MAX_ID); /* gid */
+    memcpy(header->size, &buf[SIZE_OFFSET], MAX_SIZE); /* size */
+    memcpy(header->mtime, &buf[MTIME_OFFSET], MAX_MTIME); /* mtime */
+    memcpy(header->chksum, &buf[CHKSUM_OFFSET], MAX_CHKSUM); /* chksum */
+    memcpy(header->typeflag,
+            &buf[TYPEFLAG_OFFSET], MAX_TYPEFLAG); /* typeflag */
+    memcpy(header->linkname,
+            &buf[LINKNAME_OFFSET], MAX_LINKNAME); /* linkname */
+    memcpy(header->magic, &buf[MAGIC_OFFSET], MAX_MAGIC); /* magic */
+    memcpy(header->version, &buf[VERSION_OFFSET], MAX_VERSION); /* version */
+    memcpy(header->uname, &buf[UNAME_OFFSET], MAX_UNAME); /* uname */
+    memcpy(header->gname, &buf[GNAME_OFFSET], MAX_GNAME); /* gname */
+    memcpy(header->devmajor, &buf[DEVMAJ_OFFSET], MAX_DEVMAJ); /* devmajor */
+    memcpy(header->devminor, &buf[DEVMIN_OFFSET], MAX_DEVMIN); /* devminor */
+    memcpy(header->prefix, &buf[PREFIX_OFFSET], MAX_PREFIX); /* prefix */
+
+    return header;
 }
