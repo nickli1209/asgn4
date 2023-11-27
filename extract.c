@@ -4,7 +4,7 @@ void extract_files(int tarfile, Options *opts) {
     uint8_t buf[BLOCK_SIZE]; /* buffer for reading blocks */
     uint8_t check[BLOCK_SIZE]; /* buf to check for 2 NULL blocks */
     char fullpath[MAX_PATH];
-    int i, bytes, fd, offset;
+    int bytes, fd;
     unsigned long size, ttl_rd;
     Header *header;
           
@@ -33,15 +33,14 @@ void extract_files(int tarfile, Options *opts) {
         }
 
         fd = create_ent(fullpath, header);
-        offset = size ? ((size / 512) + 1) : 0;
         ttl_rd = 0;
-        while (ttl_rd < size) {
+        while (size > 0 && ttl_rd <= size) {
             if ((bytes = read(tarfile, buf, BLOCK_SIZE)) == -1) {
                 perror("read");
                 exit(EXIT_FAILURE);
             } else {
                 ttl_rd += bytes;
-                if (ttl_rd >= size) {
+                if (ttl_rd > size) {
                     int diff = ttl_rd - size;
                     if (write(fd, buf, BLOCK_SIZE - diff - 1) == -1) {
                         perror("write");
@@ -77,7 +76,7 @@ int create_ent(char *fullpath, Header *header) {
     int fd;
 
     mode = (mode_t) strtoul(header->mode, NULL, 8);
-    perms = mode;
+    perms = 0;
     if (S_ISDIR(mode) || ((S_IXUSR | S_IXGRP | S_IXOTH) & mode) != 0) {
         perms |= (S_IRWXU | S_IRWXG | S_IRWXO);
     } else {
