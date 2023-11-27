@@ -4,12 +4,12 @@ void extract_files(int tarfile, Options *opts) {
     uint8_t buf[BLOCK_SIZE]; /* buffer for reading blocks */
     uint8_t check[BLOCK_SIZE]; /* buf to check for 2 NULL blocks */
     char fullpath[MAX_PATH];
-    int bytes_read, fd, offset;
-    unsigned long size;
+    int i, bytes, fd, offset;
+    unsigned long size, ttl_rd;
     Header *header;
           
 
-    while ((bytes_read = read(tarfile, buf, BLOCK_SIZE)) > 0) {
+    while ((bytes = read(tarfile, buf, BLOCK_SIZE)) > 0) {
         if (memcmp(buf, check, BLOCK_SIZE) == 0) {
             if (read(tarfile, buf, BLOCK_SIZE) == -1) {
                 perror("read on tarfile");
@@ -32,16 +32,38 @@ void extract_files(int tarfile, Options *opts) {
             printf("%s\n", fullpath);
         }
 
-        fd = create_ent(fullpath, header);    
+        fd = create_ent(fullpath, header);
         offset = size ? ((size / 512) + 1) : 0;
+        ttl_rd = 0;
+        while (ttl_rd < size) {
+            if ((bytes = read(tarfile, buf, BLOCK_SIZE)) == -1) {
+                perror("read");
+                exit(EXIT_FAILURE);
+            } else {
+                ttl_rd += bytes;
+                if (ttl_rd >= size) {
+                    int diff = ttl_rd - size;
+                    if (write(fd, buf, BLOCK_SIZE - diff - 1) == -1) {
+                        perror("write");
+                        exit(EXIT_FAILURE);
+                    }
+                } else if (write(fd, buf, BLOCK_SIZE) == -1) {
+                        perror("write");
+                        exit(EXIT_FAILURE);
+                    } 
+                }     
+
+        }
+
         if (fd > 0) {
             close(fd);
-        }       
-        lseek(tarfile, offset * 512, SEEK_CUR);
+        }
+
+        /*lseek(tarfile, offset * 512, SEEK_CUR); */
         free(header);
     }
 
-    if (bytes_read == -1) {
+    if (bytes == -1) {
         perror("read on tarfile");
         exit(EXIT_FAILURE);
     }
