@@ -75,7 +75,6 @@ int main(int argc, char *argv[]) {
             /* fill paths array */
             for (i = 3; i < argc; i++) {
                 paths[i - 3] = argv[i];
-                printf("%s\n", paths[i-3]);
             }
             paths[++i] = NULL;
         }

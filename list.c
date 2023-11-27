@@ -38,25 +38,6 @@ void contents(int tarfile, Options *opts,char ** pathList) {
         } else {
             strncpy(fullpath, header->name, MAX_NAME);
         } 
-        /*
-		if(pathList!=NULL){
-			int i=0;
-			int match=0;
-			for(i=0;pathList[i]!=NULL;i++){
-				int pathLen=strlen(pathList[i]);
-				if (strncmp(fullpath,pathList[i],pathLen)==0 ){
-					match=1;
-					break;
-				}			
-			}
-		} 
-		if(!match){
-			offset = size ? ((size / 512) + 1) : 0;  calculate block to read 
-                	lseek(tarfile, offset * 512, SEEK_CUR);  seek to next header block 
-                	free(header);
-			continue;	
-		}
-        */
         /* prntpths ON means we will print paths - turn it on (default),
          * then turn off if there are path args detected */
         prntpths = ON;
@@ -64,7 +45,8 @@ void contents(int tarfile, Options *opts,char ** pathList) {
             int i;
             int path_len;
             prntpths = OFF;
-            /* iterate through path args, if one matches turn prntpths back ON */
+            /* iterate through path args,
+             * if one matches turn prntpths back ON */
             for (i = 0; pathList[i] != NULL; i++) {
                 path_len = strlen(pathList[i]);
                 if (strncmp(fullpath, pathList[i], path_len) == 0) {
