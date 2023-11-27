@@ -13,8 +13,7 @@ void traverse_files(char *path, Options *opts, int tarfile) {
 
 	/* store entry info into sb */
 	if (lstat(path, &sb) == -1) {
-		perror("lstat on directory (traverse_files)");
-		exit(EXIT_FAILURE);
+		perror(path);
 	}
 	
     /* format and store path in fullpath */
@@ -33,8 +32,7 @@ void traverse_files(char *path, Options *opts, int tarfile) {
 
 	/* open current directory */
 	if ((dir = opendir(path)) == NULL) {
-		perror("opendir on file (traverse_files)");
-		exit(EXIT_FAILURE);
+        perror(path);
 	}
 	
 	/* iterate through current's entries */
@@ -42,40 +40,35 @@ void traverse_files(char *path, Options *opts, int tarfile) {
 		/* skip over '.' and '..' entries  */
 		if (strcmp(ent->d_name, ".") != 0 && 
 		strcmp(ent->d_name, "..") != 0) {
-				/* check to make sure path isn't too long
-				 * before creating it*/
-                if (strlen(path) + strlen(ent->d_name) > MAX_PATH) {
-                    fprintf(stderr, "pathname too long");
-				    exit(EXIT_FAILURE);
-				}
+            /* check to make sure path isn't too long
+             * before creating it*/
+            if (strlen(path) + strlen(ent->d_name) > MAX_PATH) {
+                printf("pathname too long");
+            }
 
-				/* format new path, store in fullpath */
-				snprintf(fullpath, MAX_PATH, "%s/%s",
-					   	path, ent->d_name);
+            /* format new path, store in fullpath */
+            snprintf(fullpath, MAX_PATH, "%s/%s",
+                    path, ent->d_name);
 
-				/* store entry info into sb */
-				if (lstat(fullpath, &sb) == -1) {
-                    perror("lstat on file (traverse_files)");
-					closedir(dir);
-					exit(EXIT_FAILURE);
-				}
-
-                /* if it's a directory and not a symlink, recurse */
-                if (S_ISDIR(sb.st_mode) && !S_ISLNK(sb.st_mode)) {
-					traverse_files(fullpath, opts, tarfile);
-				} else {
-                    /* else create and populate Header struct with
-                     * file info, then write it to the tarfile */
-                    header = create_header(fullpath, &sb, opts);
-					write_header(header, fullpath, tarfile);
-                    free(header);
-                    /* if verbose option on, print path */
-					if (opts->v) {
-						printf("%s\n", fullpath);
-					}
-				}
-			}
-	}
+            /* store entry info into sb */
+            if (lstat(fullpath, &sb) == -1) {
+                perror(fullpath);
+            } else if (S_ISDIR(sb.st_mode) && !S_ISLNK(sb.st_mode)) {
+                /* if it's a directory and not a symlink, recurse  */	
+                traverse_files(fullpath, opts, tarfile);
+            } else {
+                /* else create and populate Header struct with
+                * file info, then write it to the tarfile */
+                header = create_header(fullpath, &sb, opts);
+                write_header(header, fullpath, tarfile);
+                free(header);
+                /* if verbose option on, print path */
+                if (opts->v) {
+                    printf("%s\n", fullpath);
+                }
+            }
+        }
+    }
     /* close directory */
 	closedir(dir);
 	return;
@@ -191,10 +184,12 @@ void pop_typeflag(Header *header, struct stat *sb) {
 		header->typeflag[0] = '2'; /* if symlink, set to '2' */
 	} else if (S_ISDIR(sb->st_mode)) {
 		header->typeflag[0] = '5'; /* if directory, set to '5' */
-	} else {
-		/* else regular file (alternate), so set to NULL */
+	} else if (header->typeflag[0] == '0') {
+		/* else if regular file (alternate), so set to NULL */
 		header->typeflag[0] = '\0'; 
-	}
+	} else {
+        perror("unrecognizable file type");
+    }
 	return;
 }
 
@@ -212,8 +207,7 @@ void pop_linkname(Header *header, char *path, struct stat *sb) {
 		}
 		/* if strlen is greater than 100, can't fit into field */
 		if (strlen(buf) > 100) {
-			fprintf(stderr, "linkname too long");
-			exit(EXIT_FAILURE);
+			printf("linkname too long");
 		} else {
 			/* else copy string to checksum field */
 			strncpy(header->chksum, buf, MAX_NAME);
@@ -228,13 +222,11 @@ void pop_symnames(Header *header, struct stat *sb) {
 	struct group *grp = getgrgid(sb->st_gid); /* contains group name */
 	/* if getpwuid failed, throw an error */
 	if (pw == NULL) {
-		perror("getpwuid (pop_symnames)");
-		exit(EXIT_FAILURE);
+		perror("getpwuid");
 	}
 	/* if getgrgid failed, throw an error */
 	if (grp == NULL) {
-		perror("getgrgid (pop_symnames)");
-		exit(EXIT_FAILURE);
+		perror("getgrgid");
 	}
 	/* write the strings to their corresponding fields */
 	strncpy(header->uname, pw->pw_name, sizeof(header->uname));
