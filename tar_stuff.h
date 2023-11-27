@@ -108,6 +108,7 @@ Header *readHeader(uint8_t *buf);
 
 /* extract stuff */
 void extract_files(int tarfile, Options *opts);
+int create_ent(char *fullpath, Header *header);
 
 /* helpers */
 void int_to_octal(char * dest, int size, unsigned long val);
