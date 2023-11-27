@@ -1,29 +1,44 @@
 #include "tar_stuff.h"
 
+/* reads headers of tarfile and prints paths. if v option set, 
+ * prints more info. if pathlist not NULL, prints only paths starting from 
+ * those in pathlist*/
 void contents(int tarfile, Options *opts,char ** pathList) {
- 	uint8_t buf[BLOCK_SIZE];
- 	char fullpath[MAX_PATH];
-  	unsigned long size;
-  	int offset;
-  	Header *header;
-  	uint8_t check[BLOCK_SIZE];
+ 	uint8_t buf[BLOCK_SIZE]; /* buffer for block of tarfile */
+ 	char fullpath[MAX_PATH]; /* for concatenating name and prefix */
+  	unsigned long size; /* for converting from octal to int */
+  	int offset; /* offset in tarfile */
+  	Header *header; /* header struct */
+  	uint8_t check[BLOCK_SIZE]; /* check for 2 NULL blocks at end */
+    int prntpths; /* flag for printing paths */
 
   	memset(check, '\0', BLOCK_SIZE);
-	
+    
+    /* read from tarfile in blocks of 512 bytes */
 	while (read(tarfile, buf, BLOCK_SIZE) > 0) {
-    		if (memcmp(buf, check, BLOCK_SIZE) == 0) {
+        /* if we have read 2 blocks of NULL chars, we are done */
+        if (memcmp(buf, check, BLOCK_SIZE) == 0) {
+            if (read(tarfile, buf, BLOCK_SIZE) == -1) {
+                perror("read on tarfile (contents)");
+                exit(EXIT_FAILURE);
+            }
 			if(memcmp(buf, check, BLOCK_SIZE) == 0) {
 				break;
-			}	
-    		}
-    		/* fills header with header data from buf*/
+			}
+        }
+
+        /* fill header struct with info read from header blocks */
 		header = readHeader(buf);
+        /* convert octal size to an integer for calculating offset */
    		size = strtoul(header->size,NULL,8);
+        
+        /* store full path for checking and printing */
 		if (header->prefix[0] != '\0') {
-                        snprintf(fullpath, MAX_PATH, "%s/%s", header->prefix, header->name);
-                } else {
-                        strncpy(fullpath, header->name, MAX_NAME);
-                }
+            snprintf(fullpath, MAX_PATH, "%s/%s", header->prefix, header->name);
+        } else {
+            strncpy(fullpath, header->name, MAX_NAME);
+        } 
+        /*
 		if(pathList!=NULL){
 			int i=0;
 			int match=0;
@@ -36,41 +51,67 @@ void contents(int tarfile, Options *opts,char ** pathList) {
 			}
 		} 
 		if(!match){
-			offset = size ? ((size / 512) + 1) : 0; /* calculate block to read */
-                	lseek(tarfile, offset * 512, SEEK_CUR); /* seek to next header block */
+			offset = size ? ((size / 512) + 1) : 0;  calculate block to read 
+                	lseek(tarfile, offset * 512, SEEK_CUR);  seek to next header block 
                 	free(header);
 			continue;	
 		}
+        */
+        /* prntpths ON means we will print paths - turn it on (default),
+         * then turn off if there are path args detected */
+        prntpths = ON;
+        if (pathList != NULL) {
+            int i;
+            int path_len;
+            prntpths = OFF;
+            /* iterate through path args, if one matches turn prntpths back ON */
+            for (i = 0; pathList[i] != NULL; i++) {
+                path_len = strlen(pathList[i]);
+                if (strncmp(fullpath, pathList[i], path_len) == 0) {
+                    prntpths = ON;
+                }
+            } 
+        }
 		
-    		if (opts->v) {
-      			print_perms(header->mode);
-      			printf(" %s/%s        ", header->uname, header->gname);
-      			printf("%8d ", (int) size);
-      			time_t time = (time_t) strtoul(header->mtime, NULL, 8);
-      			struct tm *timeinfo = localtime(&time);
-      			char formatted_time[17];
-      			strftime(formatted_time, sizeof(formatted_time), "%Y-%m-%d %H:%M", timeinfo);
-      			printf("%s ", formatted_time);
-    		}
-    
-    		if (header->linkname[0] != '\0') {
-      			printf("%s\n", header->linkname);
-    		} else {
-      			printf("%s\n", fullpath);
-    		}
-    		offset = size ? ((size / 512) + 1) : 0; /* calculate block to read */
-    		lseek(tarfile, offset * 512, SEEK_CUR); /* seek to next header block */
-		free(header);
+        /* if prntpths ON, print everything */
+        if (prntpths) {
+            /* if verbose, print additional info */
+            if (opts->v) {
+                print_perms(header->mode); /* permissions */
+                printf(" %s/%s     ", header->uname, header->gname); /* names */
+                printf("%8d ", (int) size); /* size */
+                /* time */
+                time_t time = (time_t) strtoul(header->mtime, NULL, 8);
+                struct tm *timeinfo = localtime(&time);
+                char timestr[17];
+                strftime(timestr, sizeof(timestr), "%Y-%m-%d %H:%M", timeinfo);
+                printf("%s ", timestr);
+            }
+            
+            /* if we can, print linkname, else print path */
+            if (header->linkname[0] != '\0') {
+                printf("%s\n", header->linkname);
+            } else {
+                printf("%s\n", fullpath);
+            }
+        }
+
+        offset = size ? ((size / 512) + 1) : 0; /* calculate block to read */
+        lseek(tarfile, offset * 512, SEEK_CUR); /* seek to next header block */
+		free(header); /* free header struct */
   	}
 
-  	close(tarfile);
+  	close(tarfile); /* close tarfile */
   	return;
 }
 
+/* takes an string containing the octal mode,
+ * formats and prints perms */
 void print_perms(char *mode_octal) {
-  	char perms[11];
-  	unsigned long mode; 
+  	char perms[11]; /* string to print */
+  	unsigned long mode; /* actual mode */
 
+    /* convert octal string to an unsigned long*/
   	mode = strtoul(mode_octal, NULL, 8);
   	if (S_ISDIR(mode)) {
     		perms[0] = 'd';

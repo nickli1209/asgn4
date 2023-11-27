@@ -15,6 +15,7 @@
 #include <time.h>
 
 #define ON 1
+#define OFF 0
 
 #define NAME_OFFSET 0
 #define MODE_OFFSET 100

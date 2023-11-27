@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
 		}
         
         /* read, print contents of tarfile */
-		contents(tarfile, opts);
+		contents(tarfile, opts, paths);
         free(paths); /* free paths */
 		close(tarfile); /* close tarfile */
 	}
