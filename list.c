@@ -72,7 +72,7 @@ void contents(int tarfile, Options *opts,char ** pathList) {
             
             /* print path */
             printf("%s\n", fullpath);
-
+        }
         offset = size ? ((size / 512) + 1) : 0; /* calculate block to read */
         lseek(tarfile, offset * 512, SEEK_CUR); /* seek to next header block */
 		free(header); /* free header struct */
@@ -108,5 +108,6 @@ void print_perms(char *mode_octal) {
   	perms[9] = (mode & S_IXOTH) ? 'x' : '-';
   	perms[10] = '\0';
   	printf("%s", perms);
+    return;
 }
 
