@@ -70,13 +70,8 @@ void contents(int tarfile, Options *opts,char ** pathList) {
                 printf("%s ", timestr);
             }
             
-            /* if we can, print linkname, else print path */
-            if (header->linkname[0] != '\0') {
-                printf("%s\n", header->linkname);
-            } else {
-                printf("%s\n", fullpath);
-            }
-        }
+            /* print path */
+            printf("%s\n", fullpath);
 
         offset = size ? ((size / 512) + 1) : 0; /* calculate block to read */
         lseek(tarfile, offset * 512, SEEK_CUR); /* seek to next header block */
