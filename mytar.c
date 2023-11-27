@@ -90,6 +90,15 @@ int main(int argc, char *argv[]) {
         free(paths); /* free paths */
 		close(tarfile); /* close tarfile */
 	}
+
+    /* extract */
+    if(opts->x) {
+        if ((tarfile = open(argv[2], O_RDONLY)) == -1) {
+            perror("failed to open tarfile");
+            exit(EXIT_FAILURE);
+        }
+        extract_files(tarfile, opts);
+    }
     free(opts);
 	return 0;
 }

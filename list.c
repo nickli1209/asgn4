@@ -7,7 +7,7 @@ void contents(int tarfile, Options *opts,char ** pathList) {
  	uint8_t buf[BLOCK_SIZE]; /* buffer for block of tarfile */
  	char fullpath[MAX_PATH]; /* for concatenating name and prefix */
   	unsigned long size; /* for converting from octal to int */
-  	int offset; /* offset in tarfile */
+  	int offset, bytes_read; /* offset in tarfile, bytes read for error checking */
   	Header *header; /* header struct */
   	uint8_t check[BLOCK_SIZE]; /* check for 2 NULL blocks at end */
     int prntpths; /* flag for printing paths */
@@ -15,7 +15,7 @@ void contents(int tarfile, Options *opts,char ** pathList) {
   	memset(check, '\0', BLOCK_SIZE);
     
     /* read from tarfile in blocks of 512 bytes */
-	while (read(tarfile, buf, BLOCK_SIZE) > 0) {
+	while ((bytes_read = read(tarfile, buf, BLOCK_SIZE)) > 0) {
         /* if we have read 2 blocks of NULL chars, we are done */
         if (memcmp(buf, check, BLOCK_SIZE) == 0) {
             if (read(tarfile, buf, BLOCK_SIZE) == -1) {
@@ -77,6 +77,10 @@ void contents(int tarfile, Options *opts,char ** pathList) {
         lseek(tarfile, offset * 512, SEEK_CUR); /* seek to next header block */
 		free(header); /* free header struct */
   	}
+    if (bytes_read == -1) {
+        perror("read on tarfile");
+        exit(EXIT_FAILURE);
+    }
 
   	close(tarfile); /* close tarfile */
   	return;
