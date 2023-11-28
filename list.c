@@ -22,9 +22,9 @@ void contents(int tarfile, Options *opts,char ** pathList) {
                 perror("read on tarfile (contents)");
                 exit(EXIT_FAILURE);
             }
-			if(memcmp(buf, check, BLOCK_SIZE) == 0) {
-				break;
-			}
+	    if(memcmp(buf, check, BLOCK_SIZE) == 0) {
+		break;
+	    }
         }
 
         /* fill header struct with info read from header blocks */
