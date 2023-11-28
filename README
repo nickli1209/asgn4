@@ -1,0 +1,10 @@
+NAMES: Nick Li (nmli), Lukas Chou (lechou)
+Special Instructions: Nothing really, make clean removes executables,
+make makes the execytable mytar,tar_stuff.c contains helper methods
+organized by file there used in, tar_stuff.h contains all imports,
+struct definitions, and macros, archive.c is our create archive file,
+list.c is our code for printing table of contents, extract.c is our file
+for extracting from the tarfile, mytar.c is our main for the entire
+program. 
+
+

@@ -116,7 +116,7 @@ void skipToHeader(unsigned long size,int tarfile,uint8_t buf[BLOCK_SIZE]);
 void int_to_octal(char * dest, int size, unsigned long val);
 int insert_special_int(char *where, size_t size, int32_t val);
 uint32_t extract_special_int(char *where, unsigned int len);
-
+int checkChksum(Header *header);
 
 #endif
 

@@ -21,15 +21,21 @@ void extract_files(int tarfile, Options *opts,char **pathList) {
         }
         header = readHeader(buf);
         size = strtoul(header->size, NULL, 8);
-	
+	printf("name from heder:%s\n",header->name);
+	/* verifies header is correct otherwise continues end here
+	if(!checkChksum(header)){
+	    fprintf(stderr,"ERROR: Invalid chksum detected,gave up extract");
+	    free(header);
+	    exit(EXIT_FAILURE);
+	}*/	
 	/*if strict is set and magic or version dont conform,skip*/
         if(opts->S){
 	    if(strncmp(header->magic,"ustar",6!=0) ||
 	    header->version[0]!='0' ||header->version[1]!='0'){
-	        /*passes to next header if magic and version arent set*/
-	        skipToHeader(size,tarfile,buf);
-		free(header);
-	        continue;
+	        /*quits extract if magic and version dont conform*/
+		fprintf(stderr,"ERROR: Invalid magic or version detected,gave up extract");
+                free(header);
+                exit(EXIT_FAILURE);
 	    }
 	}
 	
@@ -84,6 +90,8 @@ void extract_files(int tarfile, Options *opts,char **pathList) {
 	        exit(EXIT_FAILURE);   
 	    }		
 	    /*done utime*/	
+	} else {
+		skipToHeader(size, tarfile, buf);	
 	}
 	
         free(header);

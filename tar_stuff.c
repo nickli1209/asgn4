@@ -174,5 +174,23 @@ void skipToHeader(unsigned long size,int tarfile,uint8_t buf[BLOCK_SIZE]){
     }
 }
 
-
+int checkChksum(Header *header){
+	unsigned long chksum=strtoul(header->chksum,NULL,8);
+	printf("sum from header:%lu\n",chksum);
+	memset(header->chksum,' ',sizeof(header->chksum));
+	unsigned char *bytes = (unsigned char *) header;
+        unsigned long checksum=0;
+        size_t i;
+        for(i=0;i<sizeof(Header);i++){
+                checksum += bytes[i] ? 1 : 0;
+        }
+	printf("sum calculated:%lu\n",checksum);
+	int_to_octal(header->chksum,sizeof(header->chksum),chksum);
+	if(chksum==checksum){
+	    return 1;
+	}
+	else{
+ 	    return 0;
+	}
+}
 
