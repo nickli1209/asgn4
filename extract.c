@@ -21,39 +21,38 @@ void extract_files(int tarfile, Options *opts,char **pathList) {
         }
         header = readHeader(buf);
         size = strtoul(header->size, NULL, 8);
-	printf("name from heder:%s\n",header->name);
-	/* verifies header is correct otherwise continues end here
-	if(!checkChksum(header)){
-	    fprintf(stderr,"ERROR: Invalid chksum detected,gave up extract");
-	    free(header);
-	    exit(EXIT_FAILURE);
-	}*/	
-	/*if strict is set and magic or version dont conform,skip*/
+        /* verifies header is correct otherwise continue */
+        if(!checkChksum(header)){
+            fprintf(stderr,"ERROR: Invalid chksum detected,gave up extract");
+            free(header);
+            exit(EXIT_FAILURE);
+        }
+        /*if strict is set and magic or version dont conform,skip*/
         if(opts->S){
-	    if(strncmp(header->magic,"ustar",6!=0) ||
-	    header->version[0]!='0' ||header->version[1]!='0'){
-	        /*quits extract if magic and version dont conform*/
-		fprintf(stderr,"ERROR: Invalid magic or version detected,gave up extract");
+            if(strncmp(header->magic,"ustar",6!=0) ||
+            header->version[0]!='0' ||header->version[1]!='0'){
+                /*quits extract if magic and version dont conform*/
+                fprintf(stderr,"ERROR: Invalid magic or version detected,gave up extract");
                 free(header);
                 exit(EXIT_FAILURE);
-	    }
-	}
+            }
+        }
 	
-	if (header->prefix[0] != '\0') {
+        if (header->prefix[0] != '\0') {
             snprintf(fullpath, MAX_PATH, "%s/%s", header->prefix, header->name);
         } else {
             strncpy(fullpath, header->name, MAX_NAME);
         }
 	
-	flag = ON;
-	vflag =ON;
+        flag = ON;
+        vflag =ON;
         if (pathList != NULL) {
             int i;
             int path_len;
             flag= OFF;
-	    vflag = OFF;
+            vflag = OFF;
             /* iterate through path args,
- 	    ** if one matches turn prntpths back ON */
+ 	    * if one matches turn prntpths back ON */
             for (i = 0; pathList[i] != NULL; i++) {
                 path_len = strlen(pathList[i]);
                 if (strncmp(fullpath, pathList[i], path_len) == 0) {
@@ -71,35 +70,35 @@ void extract_files(int tarfile, Options *opts,char **pathList) {
             }
 	
             fd = create_ent(fullpath, header);
-	    if (size>0){
-	        writeContents(fd,size,buf,tarfile);
-	    }
+            if (size>0){
+                writeContents(fd,size,buf,tarfile);
+            }
 
-	    /*set certain file stast from header fields*/
-	    /*set times*/
-	    struct utimbuf new_time;
-	    struct stat fst;
-	    if(stat(fullpath,&fst)==-1){
-	       perror("stat");
-	       exit(EXIT_FAILURE);
-	    }
-	    new_time.actime=fst.st_atime;	
-	    new_time.modtime=(time_t) strtoul(header->mtime,NULL,8);
-	    if(utime(fullpath,&new_time)==-1){
-	        perror("utime");
-	        exit(EXIT_FAILURE);   
-	    }		
-	    /*done utime*/	
-	} else {
-		/*skipToHeader(size, tarfile, buf);*/
-        int offset;
-        offset = size ? ((size / 512) + 1) : 0; /* calculate block to read */
-        lseek(tarfile, offset * 512, SEEK_CUR); /* seek to next header block */
-            
-	}
-	
-        free(header);
-    }
+            /*set certain file stast from header fields*/
+            /*set times*/
+            struct utimbuf new_time;
+            struct stat fst;
+            if(stat(fullpath,&fst)==-1){
+                perror("stat");
+                exit(EXIT_FAILURE);
+            }
+            new_time.actime=fst.st_atime;	
+            new_time.modtime=(time_t) strtoul(header->mtime,NULL,8);
+            if(utime(fullpath,&new_time)==-1){
+                perror("utime");
+                exit(EXIT_FAILURE);   
+            }		
+            /*done utime*/	
+            } else {
+                /*skipToHeader(size, tarfile, buf);*/
+                int offset;
+                offset = size ? ((size / 512) + 1) : 0; /* calculate block to read */
+                lseek(tarfile, offset * 512, SEEK_CUR); /* seek to next header block */
+                        
+            }
+        
+                free(header);
+        }
 
 
 
