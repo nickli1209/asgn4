@@ -127,8 +127,8 @@ void pop_name(Header *header, char *fullpath) {
 		 * encountering a slash OR getting to end of string */
         index = strlen(fullpath) - MAX_NAME - 1;
         while (fullpath[index] != '/') {
-			/* if the end is reached, throw an error
-             * but don't exit */
+			/* if the end is reached, throw an error and exit
+             * (no point in writing a file who's name we can't unarchive */
             if (index >= strlen(fullpath)-1) {
                 fprintf(stderr, "can't partition %s", fullpath);
                 exit(EXIT_FAILURE);

@@ -19,7 +19,7 @@ void contents(int tarfile, Options *opts,char ** pathList) {
         /* if we have read 2 blocks of NULL chars, we are done */
         if (memcmp(buf, check, BLOCK_SIZE) == 0) {
             if (read(tarfile, buf, BLOCK_SIZE) == -1) {
-                perror("read on tarfile (contents)");
+                perror("read on tarfile");
                 exit(EXIT_FAILURE);
             }
 			if(memcmp(buf, check, BLOCK_SIZE) == 0) {
