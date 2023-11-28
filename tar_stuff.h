@@ -13,6 +13,7 @@
 #include <grp.h>
 #include <fcntl.h>
 #include <time.h>
+#include <utime.h>
 
 #define ON 1
 #define OFF 0
@@ -107,10 +108,11 @@ void print_perms(char *mode);
 Header *readHeader(uint8_t *buf);
 
 /* extract stuff */
-void extract_files(int tarfile, Options *opts);
+void extract_files(int tarfile, Options *opts,char ** pathList);
 int create_ent(char *fullpath, Header *header);
-
-/* helpers */
+void writeContents(int fd,unsigned long size,uint8_t buf[BLOCK_SIZE],int tarfile);
+void skipToHeader(unsigned long size,int tarfile,uint8_t buf[BLOCK_SIZE]);
+/*helpers*/
 void int_to_octal(char * dest, int size, unsigned long val);
 int insert_special_int(char *where, size_t size, int32_t val);
 uint32_t extract_special_int(char *where, unsigned int len);

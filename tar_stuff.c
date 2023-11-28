@@ -136,3 +136,43 @@ Header *readHeader(uint8_t *buf){
 
     return header;
 }
+
+void writeContents(int fd,unsigned long size,uint8_t buf[BLOCK_SIZE],int tarfile){
+	int bytes;
+	unsigned long ttl_rd=0;
+        while (ttl_rd <= size) {
+            if ((bytes = read(tarfile, buf, BLOCK_SIZE)) == -1) {
+                perror("read");
+                exit(EXIT_FAILURE);
+            }
+            ttl_rd += bytes;
+            if (ttl_rd > size) {
+                int diff = ttl_rd - size;
+                if (write(fd, buf, BLOCK_SIZE - diff - 1) == -1) {
+                    perror("write");
+                    exit(EXIT_FAILURE);
+                }
+            } else if (write(fd, buf, BLOCK_SIZE) == -1) {
+                perror("write");
+                exit(EXIT_FAILURE);
+            }
+        }
+        if (fd > 0) {
+            close(fd);
+        }
+}
+
+void skipToHeader(unsigned long size,int tarfile,uint8_t buf[BLOCK_SIZE]){
+    int bytes;
+    unsigned long ttl_rd=0;
+    while (ttl_rd <= size) {
+        if ((bytes = read(tarfile, buf, BLOCK_SIZE)) == -1) {
+            perror("read");
+            exit(EXIT_FAILURE);
+        }
+        ttl_rd += bytes;
+    }
+}
+
+
+

@@ -1,11 +1,11 @@
 #include "tar_stuff.h"
 
-void extract_files(int tarfile, Options *opts) {
+void extract_files(int tarfile, Options *opts,char **pathList) {
     uint8_t buf[BLOCK_SIZE]; /* buffer for reading blocks */
     uint8_t check[BLOCK_SIZE]; /* buf to check for 2 NULL blocks */
     char fullpath[MAX_PATH];
-    int bytes, fd;
-    unsigned long size, ttl_rd;
+    int bytes, fd,flag, vflag;
+    unsigned long size;
     Header *header;
           
 
@@ -21,46 +21,75 @@ void extract_files(int tarfile, Options *opts) {
         }
         header = readHeader(buf);
         size = strtoul(header->size, NULL, 8);
-    
-		if (header->prefix[0] != '\0') {
+	
+	/*if strict is set and magic or version dont conform,skip*/
+        if(opts->S){
+	    if(strncmp(header->magic,"ustar",6!=0) ||
+	    header->version[0]!='0' ||header->version[1]!='0'){
+	        /*passes to next header if magic and version arent set*/
+	        skipToHeader(size,tarfile,buf);
+		free(header);
+	        continue;
+	    }
+	}
+	
+	if (header->prefix[0] != '\0') {
             snprintf(fullpath, MAX_PATH, "%s/%s", header->prefix, header->name);
         } else {
             strncpy(fullpath, header->name, MAX_NAME);
         }
-        
-        if (opts->v) {
-            printf("%s\n", fullpath);
+	
+	flag = ON;
+	vflag =ON;
+        if (pathList != NULL) {
+            int i;
+            int path_len;
+            flag= OFF;
+	    vflag = OFF;
+            /* iterate through path args,
+ 	    ** if one matches turn prntpths back ON */
+            for (i = 0; pathList[i] != NULL; i++) {
+                path_len = strlen(pathList[i]);
+                if (strncmp(fullpath, pathList[i], path_len) == 0) {
+			vflag = ON;
+			flag = ON;
+		}
+		if (strncmp(fullpath, pathList[i], strlen(fullpath)) == 0) {
+                    flag = ON;
+                }
+            }
         }
+        if(flag){
+            if (opts->v && vflag) {
+            	printf("%s\n", fullpath);
+            }
+	
+            fd = create_ent(fullpath, header);
+	    if (size>0){
+	        writeContents(fd,size,buf,tarfile);
+	    }
 
-        fd = create_ent(fullpath, header);
-        ttl_rd = 0;
-        while (size > 0 && ttl_rd <= size) {
-            if ((bytes = read(tarfile, buf, BLOCK_SIZE)) == -1) {
-                perror("read");
-                exit(EXIT_FAILURE);
-            } else {
-                ttl_rd += bytes;
-                if (ttl_rd > size) {
-                    int diff = ttl_rd - size;
-                    if (write(fd, buf, BLOCK_SIZE - diff - 1) == -1) {
-                        perror("write");
-                        exit(EXIT_FAILURE);
-                    }
-                } else if (write(fd, buf, BLOCK_SIZE) == -1) {
-                        perror("write");
-                        exit(EXIT_FAILURE);
-                    } 
-                }     
-
-        }
-
-        if (fd > 0) {
-            close(fd);
-        }
-
-        /*lseek(tarfile, offset * 512, SEEK_CUR); */
+	    /*set certain file stast from header fields*/
+	    /*set times*/
+	    struct utimbuf new_time;
+	    struct stat fst;
+	    if(stat(fullpath,&fst)==-1){
+	       perror("stat");
+	       exit(EXIT_FAILURE);
+	    }
+	    new_time.actime=fst.st_atime;	
+	    new_time.modtime=(time_t) strtoul(header->mtime,NULL,8);
+	    if(utime(fullpath,&new_time)==-1){
+	        perror("utime");
+	        exit(EXIT_FAILURE);   
+	    }		
+	    /*done utime*/	
+	}
+	
         free(header);
     }
+
+
 
     if (bytes == -1) {
         perror("read on tarfile");
@@ -87,11 +116,17 @@ int create_ent(char *fullpath, Header *header) {
         if ((fd = mkdir(fullpath, perms)) == -1) {
             perror("mkdir");
             exit(EXIT_FAILURE);
-        }
-    } else if ((fd = open(fullpath, O_WRONLY | O_CREAT | O_TRUNC, perms)) == -1) {
-        perror("open");
-        //fprintf(stderr, "failed to open %s", fullpath);
-        exit(EXIT_FAILURE);
+        }	
+    }else if(S_ISLNK(mode)){
+	if((fd= symlink(header->linkname,fullpath))==-1){
+	    perror("symlink");
+	    exit(EXIT_FAILURE);
+	}
+    }else {
+        if ((fd = open(fullpath, O_WRONLY | O_CREAT | O_TRUNC, perms)) == -1) {
+            fprintf(stderr, "failed to open %s", fullpath);
+            exit(EXIT_FAILURE);
+            }
     }
     return fd;
 }
