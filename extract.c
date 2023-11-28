@@ -91,7 +91,11 @@ void extract_files(int tarfile, Options *opts,char **pathList) {
 	    }		
 	    /*done utime*/	
 	} else {
-		skipToHeader(size, tarfile, buf);	
+		/*skipToHeader(size, tarfile, buf);*/
+        int offset;
+        offset = size ? ((size / 512) + 1) : 0; /* calculate block to read */
+        lseek(tarfile, offset * 512, SEEK_CUR); /* seek to next header block */
+            
 	}
 	
         free(header);
