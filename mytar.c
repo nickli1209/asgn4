@@ -93,10 +93,10 @@ int main(int argc, char *argv[]) {
 
     /* extract */
     if(opts->x) {
-	int num_paths;
-	char **paths=NULL;
-	/*if optional paths*/
-	if (argc > 3) {
+        int num_paths;
+        char **paths=NULL;
+        /*if optional paths*/
+        if (argc > 3) {
             num_paths = argc - 3;
             if ((paths = malloc(num_paths + 1 * sizeof(char *))) == NULL) {
                 perror("failed to malloc paths in extract");
@@ -108,14 +108,15 @@ int main(int argc, char *argv[]) {
             }
             paths[++i] = NULL;
         }
-	/*open set tarfile*/	
+        /*open set tarfile*/	
         if ((tarfile = open(argv[2], O_RDONLY)) == -1) {
             perror("failed to open tarfile");
             exit(EXIT_FAILURE);
         }
+        /* extract files! */
         extract_files(tarfile, opts,paths);
-	free(paths);
-	close(tarfile);
+        free(paths);
+        close(tarfile);
     }
     free(opts);
 	return 0;

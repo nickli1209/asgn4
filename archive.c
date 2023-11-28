@@ -92,7 +92,7 @@ void traverse_files(char *path, Options *opts, int tarfile) {
 
 /* takes string containing path name, stat buffer, and Options struct.
  * creates and populates a header struct with pathname and info in 
- * stat buffer. returns the Header */
+ * stat buffer. returns 1 if OK, -1 on failure */
 int create_header(char *name, Header *header,  struct stat *sb, Options *opts) {
 	/* memset entire struct to NULL - this allows us to ignore the 
      * optional NULL termination and padding */
@@ -131,7 +131,8 @@ int create_header(char *name, Header *header,  struct stat *sb, Options *opts) {
 
 /* takes Header struct and string containing pathname,
  * partitions fullpath on a '/' char (if necessary) and
- * populates name and prefix fields of header */
+ * populates name and prefix fields of header.
+ * returns 1 if OK, -1 on failure */
 int pop_name(Header *header, char *fullpath) {
   unsigned int index; /* current index, used if prefix is needed */
 
@@ -193,7 +194,7 @@ void pop_IDs(Header *header, struct stat *sb, Options *opts) {
 }
 
 /* takes Header struct and stat buffer, populates 
- * typeflag field of header */
+ * typeflag field of header. returns 1 if OK, -1 on failure. */
 int pop_typeflag(Header *header, struct stat *sb) {
 	if (S_ISREG(sb->st_mode)) {
 		header->typeflag[0] = '0'; /* if regular, set to '0' */
@@ -212,7 +213,7 @@ int pop_typeflag(Header *header, struct stat *sb) {
 }
 
 /* takes header struct, pathname, and stat buffer, 
- * populates linkname field */
+ * populates linkname field. returns 1 if OK, -1 on failure */
 int pop_linkname(Header *header, char *path, struct stat *sb) {
 	/* buffer of arbitrary length over 100 to
 	 * ensure pathlen isn't too long */
@@ -236,7 +237,8 @@ int pop_linkname(Header *header, char *path, struct stat *sb) {
 }
 
 /* takes header struct and stat buffer,
- * populates uname and gname fields */
+ * populates uname and gname fields. returns 1
+ * if OK, -1 on failure */
 int pop_symnames(Header *header, struct stat *sb) {
 	struct passwd *pw = getpwuid(sb->st_uid); /* contains user name */
 	struct group *grp = getgrgid(sb->st_gid); /* contains group name */
