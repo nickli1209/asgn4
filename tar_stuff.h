@@ -91,12 +91,12 @@ void traverse_files(char *path, Options *opts, int tarfile);
 Node *insert_end(Node *head, Header *header);
 
 /* header stuff */
-Header *create_header(char *name, struct stat *sb, Options *opts);
-void pop_name(Header *header, char *fullpath);
+int create_header(char *name, Header *header, struct stat *sb, Options *opts);
+int pop_name(Header *header, char *fullpath);
 void pop_IDs(Header *header, struct stat *sb, Options *opts);
-void pop_typeflag(Header *header, struct stat *sb);
-void pop_linkname(Header *header, char *path, struct stat *sb);
-void pop_symnames(Header *header, struct stat *sb);
+int pop_typeflag(Header *header, struct stat *sb);
+int pop_linkname(Header *header, char *path, struct stat *sb);
+int pop_symnames(Header *header, struct stat *sb);
 void pop_chksum(Header *header);
 void pop_dev(Header *header, struct stat *sb);
 void write_header(Header *header, char *path, int fd);
